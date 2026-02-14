@@ -2,6 +2,9 @@ import { motion } from "framer-motion";
 import dish1 from "@/assets/dish-1.jpg";
 import dish2 from "@/assets/dish-2.jpg";
 import dish3 from "@/assets/dish-3.jpg";
+import dish4 from "@/assets/dish-4.jpg";
+import dish5 from "@/assets/dish-5.jpg";
+import dish6 from "@/assets/dish-6.jpg";
 
 const menuItems = [
   {
@@ -21,6 +24,24 @@ const menuItems = [
     name: "Далайн эрдэнэ",
     description: "Лобстер, хясаа, далайн гахай, трюфель тосон дүүжинтэй",
     price: "₮125,000",
+  },
+  {
+    image: dish4,
+    name: "Вагью стейк",
+    description: "А5 зэрэглэлийн вагью үхрийн мах, трюфель соустой, ногооны чимэглэлтэй",
+    price: "₮145,000",
+  },
+  {
+    image: dish5,
+    name: "Алтан салмон",
+    description: "Шарсан салмон филе, сарнайн цөцгийн тос, аспарагустай",
+    price: "₮98,000",
+  },
+  {
+    image: dish6,
+    name: "Трюфель ризотто",
+    description: "Мөөгний ризотто, пармезан бяслаг, трюфель тостой",
+    price: "₮78,000",
   },
 ];
 
