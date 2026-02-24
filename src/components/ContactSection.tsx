@@ -36,8 +36,9 @@ const ContactSection = () => {
               <div>
                 <h4 className="font-sans text-xs tracking-[0.2em] uppercase text-foreground mb-2">Хаяг</h4>
                 <p className="font-body text-muted-foreground">
-                  Улаанбаатар хот, Сүхбаатар дүүрэг,<br />
-                  Энхтайвны өргөн чөлөө 15
+                  Улаанбаатар хот, Хан-Уул дүүрэг,<br />
+                  Gusto restaurant
+                 Tenger Complex, 23rd khoroo Level 12, Ulaanbaatar 17032
                 </p>
               </div>
             </div>
