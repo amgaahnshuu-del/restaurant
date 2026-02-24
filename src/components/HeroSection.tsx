@@ -25,14 +25,20 @@ const HeroSection = () => {
         <span className="font-sans text-xs tracking-[0.3em] uppercase text-muted-foreground">
           Est. 2024
         </span>
-        <div className="hidden md:flex items-center gap-10">
-          {["Тухай", "Цэс", "Захиалга", "Холбоо барих"].map((item) => (
+        <div className="hidden md:flex items-center gap-8">
+          {[
+            { label: "Тухай", href: "#тухай" },
+            { label: "Цэс", href: "#цэс" },
+            { label: "Галерей", href: "#галерей" },
+            { label: "Захиалга", href: "#захиалга" },
+            { label: "Холбоо барих", href: "#холбоо" },
+          ].map((item) => (
             <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
+              key={item.label}
+              href={item.href}
               className="font-sans text-xs tracking-[0.2em] uppercase text-foreground/70 hover:text-primary transition-colors duration-300"
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </div>
