@@ -48,7 +48,7 @@ const ReservationSection = () => {
             />
             <select className="w-full bg-transparent border border-border px-6 py-4 font-body text-foreground focus:border-primary focus:outline-none transition-colors appearance-none">
               <option value="" className="bg-card">Зочдын тоо</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8,9,10].map((n) => (
                 <option key={n} value={n} className="bg-card">
                   {n} хүн
                 </option>

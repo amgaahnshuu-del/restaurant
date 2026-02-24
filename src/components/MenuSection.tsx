@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import dish1 from "@/assets/dish-1.jpg";
 import dish2 from "@/assets/dish-2.jpg";
 import dish3 from "@/assets/dish-3.jpg";
-import dish4 from "@/assets/dish-4.jpg";
-import dish5 from "@/assets/dish-5.jpg";
-import dish6 from "@/assets/dish-6.jpg";
+import dish4 from "@/assets/dish-4.png";
+import dish5 from "@/assets/dish-5.png";
+import dish6 from "@/assets/dish-6.png";
 import drink1 from "@/assets/drink-1.jpg";
 import drink2 from "@/assets/drink-2.jpg";
 import wine1 from "@/assets/wine-1.jpg";
@@ -27,28 +27,27 @@ const categories: { key: string; label: string; items: MenuItem[] }[] = [
     key: "main",
     label: "Үндсэн хоол",
     items: [
-      { image: dish1, name: "Алтан навч", description: "Шарсан фуа гра, улирлын жимс, алтан навч чимэглэлтэй", price: "₮89,000" },
-      { image: dish4, name: "Вагью стейк", description: "А5 зэрэглэлийн вагью үхрийн мах, трюфель соустой", price: "₮145,000" },
-      { image: dish5, name: "Алтан салмон", description: "Шарсан салмон филе, сарнайн цөцгийн тос, аспарагустай", price: "₮98,000" },
-      { image: dish6, name: "Трюфель ризотто", description: "Мөөгний ризотто, пармезан бяслаг, трюфель тостой", price: "₮78,000" },
-      { image: dish3, name: "Далайн эрдэнэ", description: "Лобстер, хясаа, далайн гахай, трюфель тосон дүүжинтэй", price: "₮125,000" },
+      { image: dish1, name: "Шарсан фуа гра", description: " чимэглэлтэй", price: "₮000" },
+      { image: dish4, name: "Вагью үхрийн мах", description: "А5 зэрэглэлийн вагью үхрийн мах, трюфель соустой", price: "₮145,000" },
+      { image: dish5, name: "Шарсан салмон", description: "Шарсан салмон филе, сарнайн цөцгийн тос, аспарагустай", price: "₮98,000" },
+      { image: dish6, name: "Мөөгний ризотто", description: "Мөөгний ризотто, пармезан бяслаг, трюфель тостой", price: "₮78,000" },
+      { image: dish3, name: "Лобстер", description: "Лобстер, хясаа, далайн гахай, трюфель тосон дүүжинтэй", price: "₮125,000" },
     ],
   },
   {
     key: "appetizer",
     label: "Зууш",
     items: [
-      { image: appetizer1, name: "Прошутто брускетта", description: "Италийн прошутто, инжир, зөгийн бал, рикотта бяслагтай", price: "₮45,000" },
-      { image: appetizer2, name: "Тунагийн тартар", description: "Шинэхэн тунаг загас, авокадо, васаби соустой", price: "₮55,000" },
-      { image: dish1, name: "Фуа гра", description: "Классик фуа гра, бриошь талхтай, инжир жемтэй", price: "₮68,000" },
+      { image: appetizer1, name: "Брускетта", description: "Италийн прошутто, инжир, зөгийн бал, рикотта бяслагтай", price: "₮45,000" },
+      { image: appetizer2, name: "Тунаг загас", description: "Шинэхэн тунаг загас, авокадо, васаби соустой", price: "₮55,000" },
     ],
   },
   {
     key: "dessert",
     label: "Амттан",
     items: [
-      { image: dish2, name: "Шоколадны симфони", description: "Гурван давхар шоколад бялуу, карамель ба ваниль мөс", price: "₮65,000" },
-      { image: dessert1, name: "Крем брюле", description: "Классик ваниль крем брюле, улирлын жимстэй", price: "₮42,000" },
+      { image: dish2, name: "Шоколад суфле", description: "Гурван давхар шоколад бялуу, карамель ба ваниль мөс", price: "₮65,000" },
+      { image: dessert1, name: "Ваниль крем брюле", description: "Классик ваниль крем брюле, улирлын жимстэй", price: "₮42,000" },
       { image: dessert2, name: "Тирамису", description: "Италийн уламжлалт тирамису, маскарпоне бяслагтай", price: "₮48,000" },
     ],
   },
@@ -57,7 +56,7 @@ const categories: { key: string; label: string; items: MenuItem[] }[] = [
     label: "Ундаа",
     items: [
       { image: drink1, name: "Gusto Negroni", description: "Жин, Кампари, улаан вермут, жүржийн хальстай", price: "₮35,000" },
-      { image: drink2, name: "Алтан ороо", description: "Улирлын жимсний коктейль, наранцацгийн шүүстэй", price: "₮28,000" },
+      { image: drink2, name: "Жимсний коктейль", description: "Улирлын жимсний коктейль, наранцацгийн шүүстэй", price: "₮28,000" },
     ],
   },
   {

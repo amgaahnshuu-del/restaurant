@@ -26,7 +26,7 @@ const AboutSection = () => {
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light text-foreground mb-10 leading-tight">
             Амтны <span className="italic text-primary">урлаг</span> бол
             <br />
-            бидний зүрхний хүсэл
+            бидний ойрын зорилго.
           </h2>
 
           <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8">
@@ -52,7 +52,7 @@ const AboutSection = () => {
           {[
             { number: "15+", label: "Жилийн туршлага" },
             { number: "50+", label: "Онцгой цэс" },
-            { number: "✦", label: "Michelin зэрэглэл" },
+            { number: "1000+", label: "Сэтгэл ханамжтай үйлчлүүлэгч" },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <span className="font-display text-3xl md:text-4xl text-primary">
