@@ -39,14 +39,25 @@ const generateTables = (): TableInfo[] => {
     });
   }
 
-  // C zone — Chill Zone: 4 ширээ (1 ширээ 7-8 хүн, бусад жижиг)
+  // C zone — Chill Zone: 4 ширээ
   for (let i = 1; i <= 4; i++) {
     tables.push({
       id: `C-${i}`,
       zone: "C",
       number: i,
       status: "available",
-      capacity: i === 1 ? "7-8 хүн" : "2-4 хүн",
+      capacity: i <= 2 ? "2-4 хүн" : "2-4 хүн",
+    });
+  }
+
+  // E zone — VIP өрөө: 2 ширээ (нийт 10-14 хүн)
+  for (let i = 1; i <= 2; i++) {
+    tables.push({
+      id: `E-${i}`,
+      zone: "E",
+      number: i,
+      status: "available",
+      capacity: i === 1 ? "5-7 хүн" : "5-7 хүн",
     });
   }
 
@@ -81,6 +92,7 @@ const zoneLabels: Record<string, string> = {
   B: "B бүс — Төв зал",
   C: "C бүс — Chill Zone",
   D: "D бүс — Үндсэн зал",
+  E: "E бүс — VIP өрөө",
 };
 
 const zoneDescriptions: Record<string, string> = {
@@ -88,6 +100,7 @@ const zoneDescriptions: Record<string, string> = {
   B: "6 ширээ · 2 ширээ цонхны талд",
   C: "4 ширээ · Намхан ширээ, уух суухад тохиромжтой",
   D: "10 ширээ · 4 ширээ цонхны талд",
+  E: "2 ширээ · Нийт 10-14 хүн",
 };
 
 const zoneColors: Record<string, string> = {
@@ -95,6 +108,7 @@ const zoneColors: Record<string, string> = {
   B: "border-blue-400/60",
   C: "border-emerald-400/60",
   D: "border-rose-400/60",
+  E: "border-amber-400/60",
 };
 
 const zoneAccent: Record<string, string> = {
@@ -102,6 +116,7 @@ const zoneAccent: Record<string, string> = {
   B: "bg-blue-400/20 text-blue-300",
   C: "bg-emerald-400/20 text-emerald-300",
   D: "bg-rose-400/20 text-rose-300",
+  E: "bg-amber-400/20 text-amber-300",
 };
 
 const ReservationSection = () => {
@@ -146,7 +161,7 @@ const ReservationSection = () => {
     });
   };
 
-  const zones = ["A", "B", "C", "D"];
+  const zones = ["A", "B", "C", "D", "E"];
 
   return (
     <section id="захиалга" className="py-32 px-4 md:px-8 lg:px-16">
