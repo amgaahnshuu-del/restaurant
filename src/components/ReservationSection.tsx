@@ -9,39 +9,85 @@ type TableInfo = {
   zone: string;
   number: number;
   status: TableStatus;
+  capacity: string;
+  isWindow?: boolean;
 };
 
 const generateTables = (): TableInfo[] => {
-  const zones = [
-    { zone: "A", count: 7 },
-    { zone: "B", count: 7 },
-    { zone: "C", count: 6 },
-    { zone: "D", count: 5 },
-  ];
+  const tables: TableInfo[] = [];
+
+  // A zone — Бар хэсэг: 9 ширээ (8x 2-хүн, 1x 4-хүн)
+  for (let i = 1; i <= 9; i++) {
+    tables.push({
+      id: `A-${i}`,
+      zone: "A",
+      number: i,
+      status: "available",
+      capacity: i === 9 ? "4 хүн" : "2 хүн",
+    });
+  }
+
+  // B zone — Төв зал: 6 ширээ (бүгд 4-6 хүн, B-1, B-2 цонхны тал)
+  for (let i = 1; i <= 6; i++) {
+    tables.push({
+      id: `B-${i}`,
+      zone: "B",
+      number: i,
+      status: "available",
+      capacity: "4-6 хүн",
+      isWindow: i <= 2,
+    });
+  }
+
+  // C zone — Chill Zone: 4 ширээ (1 ширээ 7-8 хүн, бусад жижиг)
+  for (let i = 1; i <= 4; i++) {
+    tables.push({
+      id: `C-${i}`,
+      zone: "C",
+      number: i,
+      status: "available",
+      capacity: i === 1 ? "7-8 хүн" : "2-4 хүн",
+    });
+  }
+
+  // D zone — 10 ширээ
+  // D-1: 6-8 хүн, D-2~D-6: 2 хүн, D-7~D-10: цонхны тал 5-8 хүн
+  for (let i = 1; i <= 10; i++) {
+    const isWindow = i >= 7;
+    let capacity = "2 хүн";
+    if (i === 1) capacity = "6-8 хүн";
+    else if (i >= 7) capacity = "5-8 хүн";
+
+    tables.push({
+      id: `D-${i}`,
+      zone: "D",
+      number: i,
+      status: "available",
+      capacity,
+      isWindow,
+    });
+  }
 
   // Simulate some booked tables
-  const bookedIds = new Set(["A-2", "A-5", "B-3", "B-6", "C-1", "C-4", "D-2", "D-5"]);
-
-  const tables: TableInfo[] = [];
-  zones.forEach(({ zone, count }) => {
-    for (let i = 1; i <= count; i++) {
-      const id = `${zone}-${i}`;
-      tables.push({
-        id,
-        zone,
-        number: i,
-        status: bookedIds.has(id) ? "booked" : "available",
-      });
-    }
-  });
-  return tables;
+  const bookedIds = new Set(["A-2", "A-5", "B-3", "C-1", "D-2", "D-8"]);
+  return tables.map((t) => ({
+    ...t,
+    status: bookedIds.has(t.id) ? ("booked" as TableStatus) : t.status,
+  }));
 };
 
 const zoneLabels: Record<string, string> = {
-  A: "A бүс — Цонхны дэргэд",
+  A: "A бүс — Бар хэсэг",
   B: "B бүс — Төв зал",
-  C: "C бүс — VIP өрөө",
-  D: "D бүс — Бар хэсэг",
+  C: "C бүс — Chill Zone",
+  D: "D бүс — Үндсэн зал",
+};
+
+const zoneDescriptions: Record<string, string> = {
+  A: "9 ширээ · Гал тогооны өмнө",
+  B: "6 ширээ · 2 ширээ цонхны талд",
+  C: "4 ширээ · Намхан ширээ, уух суухад тохиромжтой",
+  D: "10 ширээ · 4 ширээ цонхны талд",
 };
 
 const zoneColors: Record<string, string> = {
@@ -87,7 +133,6 @@ const ReservationSection = () => {
       return;
     }
 
-    // Mark as booked
     setTables((prev) =>
       prev.map((t) => (t.id === selectedTable.id ? { ...t, status: "booked" as TableStatus } : t))
     );
@@ -97,7 +142,7 @@ const ReservationSection = () => {
     setGuests("");
     toast({
       title: "Захиалга амжилттай!",
-      description: `${selectedTable.zone} бүс, ${selectedTable.number}-р ширээ захиалагдлаа.`,
+      description: `${zoneLabels[selectedTable.zone]}, ${selectedTable.number}-р ширээ (${selectedTable.capacity}) захиалагдлаа.`,
     });
   };
 
@@ -105,7 +150,7 @@ const ReservationSection = () => {
 
   return (
     <section id="захиалга" className="py-32 px-4 md:px-8 lg:px-16">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -130,6 +175,7 @@ const ReservationSection = () => {
             { label: "Сул", className: "bg-secondary border-border" },
             { label: "Сонгосон", className: "bg-primary/30 border-primary ring-2 ring-primary/40" },
             { label: "Захиалагдсан", className: "bg-muted/50 border-muted-foreground/20 opacity-50" },
+            { label: "Цонхны талд", className: "bg-secondary border-border border-dashed" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-md border ${item.className}`} />
@@ -148,7 +194,7 @@ const ReservationSection = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="border border-border rounded-sm p-4 md:p-8 mb-12 bg-card/50"
         >
-          {/* Stage / Kitchen */}
+          {/* Kitchen */}
           <div className="text-center mb-8">
             <div className="inline-block px-12 py-3 bg-secondary border border-border rounded-sm">
               <span className="font-sans text-xs tracking-[0.3em] uppercase text-muted-foreground">
@@ -165,12 +211,15 @@ const ReservationSection = () => {
                   key={zone}
                   className={`border ${zoneColors[zone]} rounded-sm p-4 md:p-6`}
                 >
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <span className={`inline-block px-3 py-1 rounded-sm text-xs font-sans tracking-wider uppercase ${zoneAccent[zone]}`}>
                       {zoneLabels[zone]}
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                  <p className="text-[11px] text-muted-foreground mb-4 font-sans tracking-wide">
+                    {zoneDescriptions[zone]}
+                  </p>
+                  <div className={`grid ${zone === "D" ? "grid-cols-5" : zone === "A" ? "grid-cols-3 sm:grid-cols-5" : "grid-cols-3 sm:grid-cols-4"} gap-3`}>
                     {zoneTables.map((table) => {
                       const isBooked = table.status === "booked";
                       const isSelected = table.status === "selected";
@@ -179,8 +228,10 @@ const ReservationSection = () => {
                           key={table.id}
                           onClick={() => handleTableClick(table.id)}
                           disabled={isBooked}
+                          title={`${table.id} — ${table.capacity}${table.isWindow ? " (Цонхны талд)" : ""}`}
                           className={`
-                            relative aspect-square rounded-md border-2 flex flex-col items-center justify-center gap-1 transition-all duration-300 font-sans
+                            relative aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 transition-all duration-300 font-sans
+                            ${table.isWindow ? "border-2 border-dashed" : "border-2"}
                             ${isBooked
                               ? "bg-muted/30 border-muted-foreground/20 opacity-40 cursor-not-allowed"
                               : isSelected
@@ -189,11 +240,16 @@ const ReservationSection = () => {
                             }
                           `}
                         >
-                          <span className="text-lg">🪑</span>
-                          <span className={`text-[10px] tracking-wider uppercase font-medium ${
+                          <span className="text-base">🪑</span>
+                          <span className={`text-[9px] tracking-wider uppercase font-medium ${
                             isBooked ? "text-muted-foreground/50" : isSelected ? "text-primary" : "text-muted-foreground"
                           }`}>
                             {table.id}
+                          </span>
+                          <span className={`text-[8px] ${
+                            isBooked ? "text-muted-foreground/30" : "text-muted-foreground/70"
+                          }`}>
+                            {table.capacity}
                           </span>
                           {isBooked && (
                             <span className="absolute inset-0 flex items-center justify-center">
@@ -223,7 +279,8 @@ const ReservationSection = () => {
               <div className="border border-primary/30 rounded-sm p-6 md:p-8 bg-card/80 mb-4">
                 <div className="text-center mb-6">
                   <span className="font-sans text-xs tracking-[0.2em] uppercase text-primary">
-                    {selectedTable.zone} бүс — {selectedTable.number}-р ширээ сонгогдлоо
+                    {zoneLabels[selectedTable.zone]} — {selectedTable.number}-р ширээ ({selectedTable.capacity})
+                    {selectedTable.isWindow ? " · Цонхны талд" : ""}
                   </span>
                 </div>
                 <div className="space-y-4">
