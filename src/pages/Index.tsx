@@ -7,10 +7,12 @@ import GallerySection from "@/components/GallerySection";
 import ReservationSection from "@/components/ReservationSection";
 import ContactSection from "@/components/ContactSection";
 import FooterSection from "@/components/FooterSection";
+import BranchSwitcher from "@/components/BranchSwitcher";
 
 const Index = () => {
   return (
     <main className="bg-background min-h-screen">
+      <BranchSwitcher />
       <HeroSection />
       <AboutSection />
       <InteriorSection />
