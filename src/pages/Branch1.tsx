@@ -24,11 +24,19 @@ const Branch1 = () => {
             <span className="text-gold-gradient">Gusto</span>
           </h1>
           <p className="font-body text-xl text-foreground/60 max-w-lg mx-auto tracking-wide mb-4">
-            Салбар 1-ийн мэдээлэл удахгүй нэмэгдэнэ
+            Амтны урлагийг мэдрэх газар
           </p>
-          <p className="font-sans text-xs tracking-[0.2em] uppercase text-muted-foreground">
-            Хаяг, байршил удахгүй...
-          </p>
+          <div className="mt-8 space-y-2">
+            <p className="font-sans text-xs tracking-[0.2em] uppercase text-primary">
+              📍 Байршил
+            </p>
+            <p className="font-body text-sm text-foreground/70">
+              Seoul St 48/14, 6-р хороолол
+            </p>
+            <p className="font-body text-sm text-foreground/70">
+              СБД — 4-р хороо, Улаанбаатар
+            </p>
+          </div>
         </motion.div>
       </section>
 
