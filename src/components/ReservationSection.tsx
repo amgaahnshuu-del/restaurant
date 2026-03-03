@@ -69,12 +69,7 @@ const generateTables = (): TableInfo[] => {
     });
   }
 
-  // Simulate some booked tables
-  const bookedIds = new Set(["A-2", "A-5", "B-3", "C-1", "D-2", "D-8"]);
-  return tables.map((t) => ({
-    ...t,
-    status: bookedIds.has(t.id) ? ("booked" as TableStatus) : t.status,
-  }));
+  return tables;
 };
 
 const zoneLabels: Record<string, string> = {
