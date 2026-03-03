@@ -46,7 +46,7 @@ const generateTables = (): TableInfo[] => {
       zone: "C",
       number: i,
       status: "available",
-      capacity: i === 5 ? "5-7 хүн (VIP)" : "2-4 хүн",
+      capacity: i === 5 ? "10-15 хүн (VIP)" : "2-4 хүн",
     });
   }
 
@@ -57,7 +57,7 @@ const generateTables = (): TableInfo[] => {
     let capacity = "2 хүн";
     if (i === 1) capacity = "6-8 хүн";
     else if (i >= 7 && i <= 10) capacity = "5-8 хүн";
-    else if (i === 11) capacity = "5-7 хүн (VIP)";
+    else if (i === 11) capacity = "10-14 хүн (VIP)";
 
     tables.push({
       id: `D-${i}`,
@@ -87,8 +87,8 @@ const zoneLabels: Record<string, string> = {
 const zoneDescriptions: Record<string, string> = {
   A: "9 ширээ · Гал тогооны өмнө",
   B: "6 ширээ · 2 ширээ цонхны талд",
-  C: "5 ширээ · Намхан ширээ + 1 VIP (5-7 хүн)",
-  D: "11 ширээ · 4 цонхны талд + 1 VIP (5-7 хүн)",
+  C: "5 ширээ · Намхан ширээ + 1 VIP (10-15 хүн)",
+  D: "11 ширээ · 4 цонхны талд + 1 VIP (10-14 хүн)",
 };
 
 const zoneColors: Record<string, string> = {
