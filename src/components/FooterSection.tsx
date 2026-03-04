@@ -6,7 +6,7 @@ const FooterSection = () => {
       <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-3 gap-12 text-center md:text-left">
           <div>
-            <img src={gustoLogo} alt="Gusto Restaurant" className="h-16 w-auto mb-4 mx-auto md:mx-0" />
+            <img src={gustoLogo} alt="Gusto Restaurant" className="h-24 w-auto mb-4 mx-auto md:mx-0" />
             <p className="font-body text-sm text-muted-foreground leading-relaxed">
               Дээд зэргийн хоолны урлагийг таньд бэлэглэхэд бэлэн.
             </p>

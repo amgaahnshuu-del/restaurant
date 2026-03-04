@@ -21,7 +21,7 @@ const Branch1 = () => {
           <span className="font-sans text-xs tracking-[0.4em] uppercase text-primary mb-6 block">
             ✦ Салбар 1 ✦
           </span>
-          <img src={gustoLogo} alt="Gusto Restaurant" className="h-28 md:h-40 w-auto mx-auto mb-6" />
+          <img src={gustoLogo} alt="Gusto Restaurant" className="h-44 md:h-60 w-auto mx-auto mb-6" />
           <p className="font-body text-xl text-foreground/60 max-w-lg mx-auto tracking-wide mb-4">
             Амтны урлагийг мэдрэх газар
           </p>
