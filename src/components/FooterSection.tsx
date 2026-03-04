@@ -1,10 +1,12 @@
+import gustoLogo from "@/assets/gusto-logo.png";
+
 const FooterSection = () => {
   return (
     <footer id="холбоо барих" className="py-20 px-8 lg:px-16 border-t border-border">
       <div className="max-w-5xl mx-auto">
         <div className="grid md:grid-cols-3 gap-12 text-center md:text-left">
           <div>
-            <h3 className="font-display text-3xl text-gold-gradient mb-4">Gusto</h3>
+            <img src={gustoLogo} alt="Gusto Restaurant" className="h-16 w-auto mb-4 mx-auto md:mx-0" />
             <p className="font-body text-sm text-muted-foreground leading-relaxed">
               Дээд зэргийн хоолны урлагийг таньд бэлэглэхэд бэлэн.
             </p>

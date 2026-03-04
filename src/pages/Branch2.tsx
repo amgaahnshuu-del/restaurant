@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import BranchSwitcher from "@/components/BranchSwitcher";
 import FooterSection from "@/components/FooterSection";
+import gustoLogo from "@/assets/gusto-logo.png";
 
 const Branch2 = () => {
   return (
@@ -20,9 +21,7 @@ const Branch2 = () => {
           <span className="font-sans text-xs tracking-[0.4em] uppercase text-primary mb-6 block">
             ✦ Салбар 2 ✦
           </span>
-          <h1 className="font-display text-6xl md:text-8xl font-light tracking-tight text-foreground mb-6">
-            <span className="text-gold-gradient">Gusto</span>
-          </h1>
+          <img src={gustoLogo} alt="Gusto Restaurant" className="h-28 md:h-40 w-auto mx-auto mb-6" />
           <p className="font-body text-xl text-foreground/60 max-w-lg mx-auto tracking-wide mb-4">
             Салбар 2-ийн мэдээлэл удахгүй нэмэгдэнэ
           </p>

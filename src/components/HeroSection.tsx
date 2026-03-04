@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import heroImage from "@/assets/hero-restaurant.jpg";
+import gustoLogo from "@/assets/gusto-logo.png";
 
 const HeroSection = () => {
   return (
@@ -60,14 +61,14 @@ const HeroSection = () => {
           </span>
         </motion.div>
 
-        <motion.h1
+        <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="font-display text-6xl md:text-8xl lg:text-9xl font-light tracking-tight text-foreground mb-6"
+          className="mb-6"
         >
-          <span className="text-gold-gradient">Gusto</span>
-        </motion.h1>
+          <img src={gustoLogo} alt="Gusto Restaurant" className="h-32 md:h-44 lg:h-56 w-auto mx-auto" />
+        </motion.div>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
