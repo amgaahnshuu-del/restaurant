@@ -67,7 +67,7 @@ const HeroSection = () => {
           transition={{ duration: 1, delay: 0.8 }}
           className="mb-6"
         >
-          <img src={gustoLogo} alt="Gusto Restaurant" className="h-32 md:h-44 lg:h-56 w-auto mx-auto" />
+          <img src={gustoLogo} alt="Gusto Restaurant" className="h-48 md:h-64 lg:h-80 w-auto mx-auto" />
         </motion.div>
 
         <motion.p
