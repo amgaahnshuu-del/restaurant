@@ -2,103 +2,50 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import FloorPlan, { type TableInfo, type TableStatus } from "@/components/FloorPlan";
 
-type TableStatus = "available" | "booked" | "selected";
+const generateTables = (): TableInfo[] => [
+  // A zone — Бар хэсэг: 9 ширээ (2 хүн, A-9 = 4 хүн)
+  ...Array.from({ length: 8 }, (_, i) => ({
+    id: `A-${i + 1}`, zone: "A", number: i + 1, status: "available" as TableStatus,
+    capacity: "2 хүн", isWindow: i >= 4 && i <= 7,
+  })),
+  { id: "A-9", zone: "A", number: 9, status: "available" as TableStatus, capacity: "4 хүн" },
 
-type TableInfo = {
-  id: string;
-  zone: string;
-  number: number;
-  status: TableStatus;
-  capacity: string;
-  isWindow?: boolean;
-};
+  // B zone — Төв зал: 6 ширээ
+  { id: "B-1", zone: "B", number: 1, status: "available" as TableStatus, capacity: "2 хүн", isWindow: true },
+  { id: "B-2", zone: "B", number: 2, status: "available" as TableStatus, capacity: "4-6 хүн", isWindow: true },
+  { id: "B-3", zone: "B", number: 3, status: "available" as TableStatus, capacity: "4-6 хүн", isWindow: true },
+  { id: "B-4", zone: "B", number: 4, status: "available" as TableStatus, capacity: "4-6 хүн" },
+  { id: "B-5", zone: "B", number: 5, status: "available" as TableStatus, capacity: "4-6 хүн" },
+  { id: "B-6", zone: "B", number: 6, status: "available" as TableStatus, capacity: "4-6 хүн", isWindow: true },
 
-const generateTables = (): TableInfo[] => {
-  const tables: TableInfo[] = [];
+  // C zone — Chill Zone: 4 ширээ
+  { id: "C-1", zone: "C", number: 1, status: "available" as TableStatus, capacity: "2-4 хүн" },
+  { id: "C-2", zone: "C", number: 2, status: "available" as TableStatus, capacity: "2-4 хүн" },
+  { id: "C-3", zone: "C", number: 3, status: "available" as TableStatus, capacity: "2-4 хүн", isWindow: true },
+  { id: "C-4", zone: "C", number: 4, status: "available" as TableStatus, capacity: "2-4 хүн", isWindow: true },
 
-  // A zone — Бар хэсэг: 9 ширээ (8x 2-хүн, 1x 4-хүн)
-  for (let i = 1; i <= 9; i++) {
-    tables.push({
-      id: `A-${i}`,
-      zone: "A",
-      number: i,
-      status: "available",
-      capacity: i === 9 ? "4 хүн" : "2 хүн",
-    });
-  }
+  // VIP rooms
+  { id: "VIP-1", zone: "C", number: 5, status: "available" as TableStatus, capacity: "8-12 хүн", isVip: true },
+  { id: "VIP-2", zone: "C", number: 6, status: "available" as TableStatus, capacity: "8-12 хүн", isVip: true },
 
-  // B zone — Төв зал: 6 ширээ (бүгд 4-6 хүн, B-1, B-2 цонхны тал)
-  for (let i = 1; i <= 6; i++) {
-    tables.push({
-      id: `B-${i}`,
-      zone: "B",
-      number: i,
-      status: "available",
-      capacity: "4-6 хүн",
-      isWindow: i <= 2,
-    });
-  }
-
-  // C zone — Chill Zone: 5 ширээ (4 ердийн + 1 VIP 5-7 хүн)
-  for (let i = 1; i <= 5; i++) {
-    tables.push({
-      id: `C-${i}`,
-      zone: "C",
-      number: i,
-      status: "available",
-      capacity: i === 5 ? "10-15 хүн (VIP)" : "2-4 хүн",
-    });
-  }
-
-  // D zone — 11 ширээ (10 ердийн + 1 VIP 5-7 хүн)
-  // D-1: 6-8 хүн, D-2~D-6: 2 хүн, D-7~D-10: цонхны тал 5-8 хүн, D-11: VIP
-  for (let i = 1; i <= 11; i++) {
-    const isWindow = i >= 7 && i <= 10;
-    let capacity = "2 хүн";
-    if (i === 1) capacity = "6-8 хүн";
-    else if (i >= 7 && i <= 10) capacity = "5-8 хүн";
-    else if (i === 11) capacity = "10-14 хүн (VIP)";
-
-    tables.push({
-      id: `D-${i}`,
-      zone: "D",
-      number: i,
-      status: "available",
-      capacity,
-      isWindow,
-    });
-  }
-
-  return tables;
-};
+  // D zone — Үндсэн зал: 10 ширээ
+  { id: "D-1", zone: "D", number: 1, status: "available" as TableStatus, capacity: "6-8 хүн" },
+  ...Array.from({ length: 5 }, (_, i) => ({
+    id: `D-${i + 2}`, zone: "D", number: i + 2, status: "available" as TableStatus, capacity: "2-4 хүн",
+  })),
+  { id: "D-7", zone: "D", number: 7, status: "available" as TableStatus, capacity: "4-6 хүн", isWindow: true },
+  { id: "D-8", zone: "D", number: 8, status: "available" as TableStatus, capacity: "4-6 хүн", isWindow: true },
+  { id: "D-9", zone: "D", number: 9, status: "available" as TableStatus, capacity: "2 хүн", isWindow: true },
+  { id: "D-10", zone: "D", number: 10, status: "available" as TableStatus, capacity: "2 хүн", isWindow: true },
+];
 
 const zoneLabels: Record<string, string> = {
   A: "A бүс — Бар хэсэг",
   B: "B бүс — Төв зал",
   C: "C бүс — Chill Zone",
   D: "D бүс — Үндсэн зал",
-};
-
-const zoneDescriptions: Record<string, string> = {
-  A: "9 ширээ · Гал тогооны өмнө",
-  B: "6 ширээ · 2 ширээ цонхны талд",
-  C: "5 ширээ · Намхан ширээ + 1 VIP (10-15 хүн)",
-  D: "11 ширээ · 4 цонхны талд + 1 VIP (10-14 хүн)",
-};
-
-const zoneColors: Record<string, string> = {
-  A: "border-primary/60",
-  B: "border-blue-400/60",
-  C: "border-emerald-400/60",
-  D: "border-rose-400/60",
-};
-
-const zoneAccent: Record<string, string> = {
-  A: "bg-primary/20 text-primary",
-  B: "bg-blue-400/20 text-blue-300",
-  C: "bg-emerald-400/20 text-emerald-300",
-  D: "bg-rose-400/20 text-rose-300",
 };
 
 const ReservationSection = () => {
@@ -172,7 +119,7 @@ const ReservationSection = () => {
     }
   };
 
-  const zones = ["A", "B", "C", "D"];
+  
 
   return (
     <section id="захиалга" className="py-32 px-4 md:px-8 lg:px-16">
@@ -218,78 +165,9 @@ const ReservationSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="border border-border rounded-sm p-4 md:p-8 mb-12 bg-card/50"
+          className="mb-12"
         >
-          {/* Kitchen */}
-          <div className="text-center mb-8">
-            <div className="inline-block px-12 py-3 bg-secondary border border-border rounded-sm">
-              <span className="font-sans text-xs tracking-[0.3em] uppercase text-muted-foreground">
-                🍳 Гал тогоо
-              </span>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-            {zones.map((zone) => {
-              const zoneTables = tables.filter((t) => t.zone === zone);
-              return (
-                <div
-                  key={zone}
-                  className={`border ${zoneColors[zone]} rounded-sm p-4 md:p-6`}
-                >
-                  <div className="mb-2">
-                    <span className={`inline-block px-3 py-1 rounded-sm text-xs font-sans tracking-wider uppercase ${zoneAccent[zone]}`}>
-                      {zoneLabels[zone]}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mb-4 font-sans tracking-wide">
-                    {zoneDescriptions[zone]}
-                  </p>
-                  <div className={`grid ${zone === "D" ? "grid-cols-5" : zone === "A" ? "grid-cols-3 sm:grid-cols-5" : "grid-cols-3 sm:grid-cols-4"} gap-3`}>
-                    {zoneTables.map((table) => {
-                      const isBooked = table.status === "booked";
-                      const isSelected = table.status === "selected";
-                      return (
-                        <button
-                          key={table.id}
-                          onClick={() => handleTableClick(table.id)}
-                          disabled={isBooked}
-                          title={`${table.id} — ${table.capacity}${table.isWindow ? " (Цонхны талд)" : ""}`}
-                          className={`
-                            relative aspect-square rounded-md flex flex-col items-center justify-center gap-0.5 transition-all duration-300 font-sans
-                            ${table.isWindow ? "border-2 border-dashed" : "border-2"}
-                            ${isBooked
-                              ? "bg-muted/30 border-muted-foreground/20 opacity-40 cursor-not-allowed"
-                              : isSelected
-                              ? "bg-primary/20 border-primary ring-2 ring-primary/50 scale-105 shadow-lg shadow-primary/20"
-                              : "bg-secondary border-border hover:border-primary/50 hover:bg-primary/10 cursor-pointer"
-                            }
-                          `}
-                        >
-                          <span className="text-base">🪑</span>
-                          <span className={`text-[9px] tracking-wider uppercase font-medium ${
-                            isBooked ? "text-muted-foreground/50" : isSelected ? "text-primary" : "text-muted-foreground"
-                          }`}>
-                            {table.id}
-                          </span>
-                          <span className={`text-[8px] ${
-                            isBooked ? "text-muted-foreground/30" : "text-muted-foreground/70"
-                          }`}>
-                            {table.capacity}
-                          </span>
-                          {isBooked && (
-                            <span className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-destructive/60 text-lg">✕</span>
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <FloorPlan tables={tables} onTableClick={handleTableClick} />
         </motion.div>
 
         {/* Booking Form */}
