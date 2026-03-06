@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 type TableStatus = "available" | "booked" | "selected";
 
@@ -119,7 +120,9 @@ const ReservationSection = () => {
     );
   };
 
-  const handleSubmit = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
     if (!selectedTable) {
       toast({ title: "Ширээ сонгоно уу", description: "Захиалга хийхийн тулд ширээ сонгоно уу.", variant: "destructive" });
       return;
@@ -129,17 +132,44 @@ const ReservationSection = () => {
       return;
     }
 
-    setTables((prev) =>
-      prev.map((t) => (t.id === selectedTable.id ? { ...t, status: "booked" as TableStatus } : t))
-    );
-    setName("");
-    setPhone("");
-    setDate("");
-    setGuests("");
-    toast({
-      title: "Захиалга амжилттай!",
-      description: `${zoneLabels[selectedTable.zone]}, ${selectedTable.number}-р ширээ (${selectedTable.capacity}) захиалагдлаа.`,
-    });
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-reservation", {
+        body: {
+          table_id: selectedTable.id,
+          zone: selectedTable.zone,
+          table_number: selectedTable.number,
+          customer_name: name,
+          phone,
+          reservation_date: date,
+          guests,
+          capacity: selectedTable.capacity,
+        },
+      });
+
+      if (error) throw error;
+
+      setTables((prev) =>
+        prev.map((t) => (t.id === selectedTable.id ? { ...t, status: "booked" as TableStatus } : t))
+      );
+      setName("");
+      setPhone("");
+      setDate("");
+      setGuests("");
+      toast({
+        title: "Захиалга амжилттай!",
+        description: `${zoneLabels[selectedTable.zone]}, ${selectedTable.number}-р ширээ (${selectedTable.capacity}) захиалагдлаа.`,
+      });
+    } catch (error: any) {
+      console.error("Reservation error:", error);
+      toast({
+        title: "Алдаа гарлаа",
+        description: "Захиалга хийхэд алдаа гарлаа. Дахин оролдоно уу.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const zones = ["A", "B", "C", "D"];
@@ -320,9 +350,10 @@ const ReservationSection = () => {
                   </div>
                   <button
                     onClick={handleSubmit}
-                    className="w-full bg-gold-gradient px-8 py-4 font-sans text-xs tracking-[0.2em] uppercase text-primary-foreground hover:opacity-90 transition-opacity duration-300"
+                    disabled={isSubmitting}
+                    className="w-full bg-gold-gradient px-8 py-4 font-sans text-xs tracking-[0.2em] uppercase text-primary-foreground hover:opacity-90 transition-opacity duration-300 disabled:opacity-50"
                   >
-                    Захиалга баталгаажуулах
+                    {isSubmitting ? "Илгээж байна..." : "Захиалга баталгаажуулах"}
                   </button>
                 </div>
               </div>
