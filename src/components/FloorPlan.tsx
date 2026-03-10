@@ -15,288 +15,309 @@ type FloorPlanProps = {
   onTableClick: (id: string) => void;
 };
 
-const TableButton = ({
-  table,
-  onClick,
-  size = "normal",
+/* ─── Table button ─── */
+const T = ({
+  table, onClick, w = 52, h = 52,
 }: {
-  table: TableInfo;
-  onClick: () => void;
-  size?: "small" | "normal" | "large" | "wide" | "vip";
+  table: TableInfo; onClick: () => void; w?: number; h?: number;
 }) => {
-  const isBooked = table.status === "booked";
-  const isSelected = table.status === "selected";
-
-  const sizeClasses = {
-    small: "w-[46px] h-[46px] md:w-[54px] md:h-[54px]",
-    normal: "w-[54px] h-[54px] md:w-[62px] md:h-[62px]",
-    large: "w-[64px] h-[64px] md:w-[74px] md:h-[74px]",
-    wide: "w-[80px] h-[54px] md:w-[96px] md:h-[62px]",
-    vip: "w-[90px] h-[58px] md:w-[110px] md:h-[68px]",
-  };
-
-  const zoneColors: Record<string, string> = {
-    A: "ring-primary/60",
-    B: "ring-blue-400/60",
-    C: "ring-emerald-400/60",
-    D: "ring-rose-400/60",
-  };
-
-  const zoneBorderSelected: Record<string, string> = {
-    A: "border-primary",
-    B: "border-blue-400",
-    C: "border-emerald-400",
-    D: "border-rose-400",
-  };
+  const booked = table.status === "booked";
+  const selected = table.status === "selected";
+  const ring: Record<string, string> = { A: "ring-primary/60", B: "ring-blue-400/60", C: "ring-emerald-400/60", D: "ring-rose-400/60" };
+  const border: Record<string, string> = { A: "border-primary", B: "border-blue-400", C: "border-emerald-400", D: "border-rose-400" };
 
   return (
     <button
-      onClick={onClick}
-      disabled={isBooked}
+      onClick={onClick} disabled={booked}
       title={`${table.id} — ${table.capacity}${table.isWindow ? " (Цонх)" : ""}${table.isVip ? " (VIP)" : ""}`}
+      style={{ width: w, height: h }}
       className={`
-        ${sizeClasses[size]} rounded-lg flex flex-col items-center justify-center transition-all duration-300 font-sans relative
+        rounded-md flex flex-col items-center justify-center transition-all duration-200 font-sans relative shrink-0
         ${table.isWindow ? "border-2 border-dashed" : "border-2"}
-        ${isBooked
+        ${booked
           ? "bg-muted/30 border-muted-foreground/20 opacity-40 cursor-not-allowed"
-          : isSelected
-          ? `bg-primary/20 ${zoneBorderSelected[table.zone]} ring-2 ${zoneColors[table.zone]} scale-110 shadow-lg shadow-primary/20`
+          : selected
+          ? `bg-primary/20 ${border[table.zone]} ring-2 ${ring[table.zone]} scale-110 shadow-lg shadow-primary/20 z-10`
           : table.isVip
-          ? "bg-accent/20 border-accent/60 hover:border-primary/60 hover:bg-primary/10 cursor-pointer hover:scale-105"
+          ? "bg-accent/20 border-accent/50 hover:border-primary/50 hover:bg-primary/10 cursor-pointer hover:scale-105"
           : "bg-secondary/80 border-border hover:border-primary/50 hover:bg-primary/10 cursor-pointer hover:scale-105"
         }
       `}
     >
-      <span className={`text-[10px] md:text-[11px] tracking-wider uppercase font-bold ${
-        isBooked ? "text-muted-foreground/50" : isSelected ? "text-primary" : "text-foreground/80"
-      }`}>
-        {table.id}
-      </span>
-      <span className={`text-[8px] md:text-[9px] leading-tight mt-0.5 ${
-        isBooked ? "text-muted-foreground/30" : "text-muted-foreground/70"
-      }`}>
-        {table.capacity}
-      </span>
-      {table.isVip && !isBooked && !isSelected && (
-        <span className="absolute -top-1 -right-1 text-[8px] bg-accent text-accent-foreground px-1 rounded-sm font-bold">VIP</span>
+      <span className={`text-[9px] md:text-[10px] tracking-wider uppercase font-bold leading-none ${
+        booked ? "text-muted-foreground/50" : selected ? "text-primary" : "text-foreground/80"
+      }`}>{table.id}</span>
+      <span className={`text-[7px] md:text-[8px] leading-none mt-0.5 ${
+        booked ? "text-muted-foreground/30" : "text-muted-foreground/60"
+      }`}>{table.capacity}</span>
+      {table.isVip && !booked && !selected && (
+        <span className="absolute -top-1.5 -right-1.5 text-[7px] bg-accent text-accent-foreground px-1 rounded font-bold leading-tight">VIP</span>
       )}
-      {isBooked && (
-        <span className="absolute inset-0 flex items-center justify-center">
-          <span className="text-destructive/60 text-lg font-bold">✕</span>
-        </span>
-      )}
+      {booked && <span className="absolute inset-0 flex items-center justify-center text-destructive/50 text-base font-bold">✕</span>}
     </button>
   );
 };
 
-const Landmark = ({ label, className = "" }: { label: string; className?: string }) => (
-  <div className={`px-4 py-2.5 border border-border/40 rounded-lg bg-secondary/30 text-center backdrop-blur-sm ${className}`}>
-    <span className="text-[9px] md:text-[10px] tracking-[0.15em] uppercase text-muted-foreground/60 whitespace-nowrap font-medium">
-      {label}
-    </span>
+/* ─── Landmark box ─── */
+const Box = ({ label, w = 80, h = 36, accent = false }: { label: string; w?: number; h?: number; accent?: boolean }) => (
+  <div
+    style={{ width: w, height: h }}
+    className={`flex items-center justify-center rounded-md text-center shrink-0 ${
+      accent ? "border-2 border-primary/25 bg-primary/5" : "border border-border/40 bg-secondary/25"
+    }`}
+  >
+    <span className={`text-[8px] md:text-[9px] tracking-[0.12em] uppercase whitespace-nowrap font-medium ${
+      accent ? "text-primary/60" : "text-muted-foreground/50"
+    }`}>{label}</span>
   </div>
 );
 
-const WindowLabel = ({ className = "" }: { className?: string }) => (
-  <span className={`text-[8px] md:text-[9px] tracking-[0.2em] uppercase text-muted-foreground/40 font-medium ${className}`}>
-    ┃ WINDOW ┃
-  </span>
-);
-
 const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
-  const t = (id: string) => tables.find((tb) => tb.id === id)!;
-  const click = (id: string) => () => onTableClick(id);
+  const g = (id: string) => tables.find((tb) => tb.id === id)!;
+  const c = (id: string) => () => onTableClick(id);
 
+  /* positions mapped from the PDF blueprint (percentage-based) */
   return (
-    <div className="relative w-full border border-border/60 rounded-lg bg-card/60 backdrop-blur-sm p-4 md:p-8 overflow-x-auto shadow-xl">
-      <div className="min-w-[780px] md:min-w-[950px] mx-auto relative" style={{ height: 920 }}>
+    <div className="relative w-full border border-border/50 rounded-md bg-card/50 overflow-x-auto">
+      <div className="min-w-[760px] md:min-w-[900px] mx-auto relative" style={{ aspectRatio: '1 / 1.1', maxHeight: 960 }}>
 
-        {/* ══════════ OUTER WALLS ══════════ */}
-        <div className="absolute inset-0 border-2 border-border/30 rounded-lg pointer-events-none" />
+        {/* ── WALLS ── */}
+        <div className="absolute inset-[8px] border-2 border-border/20 rounded pointer-events-none" />
 
-        {/* ── TOP WINDOWS ── */}
-        <div className="absolute top-[-2px] left-[3%] right-[15%] flex justify-around">
-          <WindowLabel />
-          <WindowLabel />
-          <WindowLabel />
-          <WindowLabel />
-        </div>
+        {/* ── WINDOW markers: top ── */}
+        <svg className="absolute top-[8px] left-[2%] w-[30%] h-[8px] pointer-events-none">
+          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute top-[10px] left-[10%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
+        <svg className="absolute top-[8px] left-[34%] w-[34%] h-[8px] pointer-events-none">
+          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute top-[10px] left-[42%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
+        <span className="absolute top-[10px] left-[55%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
+        <svg className="absolute top-[8px] left-[68%] w-[14%] h-[8px] pointer-events-none">
+          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute top-[10px] left-[70%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
 
-        {/* ══════════ ROW 1: C-3, C-4 | D-7, D-8 | STAGE — top: ~30 ══════════ */}
-        <div className="absolute" style={{ top: 30, left: '2%' }}>
-          <TableButton table={t("C-3")} onClick={click("C-3")} />
-        </div>
-        <div className="absolute" style={{ top: 30, left: '12%' }}>
-          <TableButton table={t("C-4")} onClick={click("C-4")} size="large" />
-        </div>
-        <div className="absolute" style={{ top: 30, left: '33%' }}>
-          <TableButton table={t("D-7")} onClick={click("D-7")} size="large" />
-        </div>
-        <div className="absolute" style={{ top: 30, left: '48%' }}>
-          <TableButton table={t("D-8")} onClick={click("D-8")} size="large" />
-        </div>
-        {/* STAGE */}
-        <div className="absolute" style={{ top: 30, right: '2%' }}>
-          <div className="w-[120px] md:w-[140px] h-[70px] md:h-[80px] border-2 border-border/50 rounded-lg bg-secondary/40 flex items-center justify-center">
-            <span className="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted-foreground/70 font-medium">🎤 STAGE</span>
-          </div>
-        </div>
+        {/* ── RIGHT WINDOW markers ── */}
+        <svg className="absolute right-[8px] top-[28%] w-[8px] h-[18%] pointer-events-none">
+          <line x1="4" y1="0" x2="4" y2="100%" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute right-[12px] top-[35%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30" style={{ writingMode: 'vertical-rl' as const }}>window</span>
 
-        {/* ══════════ ROW 2: C-2 | D-6~D-2 — top: ~130 ══════════ */}
-        <div className="absolute" style={{ top: 130, left: '4%' }}>
-          <TableButton table={t("C-2")} onClick={click("C-2")} />
-        </div>
-        <div className="absolute flex gap-2.5" style={{ top: 125, left: '26%' }}>
-          <TableButton table={t("D-6")} onClick={click("D-6")} size="large" />
-          <TableButton table={t("D-5")} onClick={click("D-5")} size="large" />
-          <TableButton table={t("D-4")} onClick={click("D-4")} size="large" />
-          <TableButton table={t("D-3")} onClick={click("D-3")} size="large" />
-          <TableButton table={t("D-2")} onClick={click("D-2")} size="large" />
-        </div>
+        <svg className="absolute right-[8px] top-[72%] w-[8px] h-[18%] pointer-events-none">
+          <line x1="4" y1="0" x2="4" y2="100%" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute right-[12px] top-[79%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30" style={{ writingMode: 'vertical-rl' as const }}>window</span>
 
-        {/* ══════════ ROW 3: C-1 | STAIRS | D-1 | D-9/D-10 — top: ~250 ══════════ */}
-        <div className="absolute" style={{ top: 265, left: '8%' }}>
-          <TableButton table={t("C-1")} onClick={click("C-1")} />
-        </div>
-        {/* VIP-2 */}
-        <div className="absolute" style={{ top: 310, left: '1%' }}>
-          <TableButton table={t("VIP-2")} onClick={click("VIP-2")} size="vip" />
-        </div>
-        {/* STAIRS upper */}
-        <div className="absolute" style={{ top: 265, left: '24%' }}>
-          <div className="w-[130px] md:w-[160px] h-[40px] border border-border/40 rounded-lg bg-secondary/20 flex items-center justify-center">
-            <span className="text-[9px] md:text-[10px] tracking-[0.15em] uppercase text-muted-foreground/50">↗ STAIRS</span>
-          </div>
-        </div>
-        {/* D-1 */}
-        <div className="absolute" style={{ top: 250, left: '50%' }}>
-          <TableButton table={t("D-1")} onClick={click("D-1")} size="large" />
-        </div>
-        {/* D-9 */}
-        <div className="absolute" style={{ top: 235, right: '4%' }}>
-          <TableButton table={t("D-9")} onClick={click("D-9")} size="small" />
-        </div>
-        {/* D-10 */}
-        <div className="absolute" style={{ top: 310, right: '4%' }}>
-          <TableButton table={t("D-10")} onClick={click("D-10")} size="small" />
-        </div>
-        {/* RIGHT WINDOW */}
-        <div className="absolute" style={{ top: 220, right: 0, writingMode: 'vertical-rl' as const }}>
-          <WindowLabel />
+        {/* ── BOTTOM WINDOW markers ── */}
+        <svg className="absolute bottom-[8px] left-[2%] w-[22%] h-[8px] pointer-events-none">
+          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute bottom-[10px] left-[6%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
+        <svg className="absolute bottom-[8px] left-[52%] w-[22%] h-[8px] pointer-events-none">
+          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
+        </svg>
+        <span className="absolute bottom-[10px] left-[57%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
+
+        {/* ════════════════════════════════════════════════
+            TABLES — positioned by % to match PDF exactly
+            ════════════════════════════════════════════════ */}
+
+        {/* ── C-3 (top-left, window) ── */}
+        <div className="absolute" style={{ top: '3%', left: '2%' }}>
+          <T table={g("C-3")} onClick={c("C-3")} w={48} h={56} />
         </div>
 
-        {/* ══════════ ROW 4: TOILET WOMAN | ELEVATORS | BAR | A-1~A-4 — top: ~410 ══════════ */}
-        {/* Toilet Woman */}
-        <div className="absolute" style={{ top: 420, left: '10%' }}>
-          <Landmark label="🚺 WC" />
-        </div>
-        {/* Elevators */}
-        <div className="absolute flex gap-3" style={{ top: 410, left: '28%' }}>
-          <div className="w-[70px] md:w-[85px] h-[55px] md:h-[65px] border-2 border-border/40 rounded-lg bg-secondary/30 flex items-center justify-center">
-            <span className="text-[9px] md:text-[10px] tracking-wider uppercase text-muted-foreground/50">🛗 ЛИФТ</span>
-          </div>
-          <div className="w-[70px] md:w-[85px] h-[55px] md:h-[65px] border-2 border-border/40 rounded-lg bg-secondary/30 flex items-center justify-center">
-            <span className="text-[9px] md:text-[10px] tracking-wider uppercase text-muted-foreground/50">🛗 ЛИФТ</span>
-          </div>
+        {/* ── C-4 (next to C-3, slightly larger) ── */}
+        <div className="absolute" style={{ top: '2.5%', left: '11%' }}>
+          <T table={g("C-4")} onClick={c("C-4")} w={66} h={62} />
         </div>
 
-        {/* VIP-1 */}
-        <div className="absolute" style={{ top: 470, left: '1%' }}>
-          <TableButton table={t("VIP-1")} onClick={click("VIP-1")} size="vip" />
+        {/* ── D-7 (center-top, large arch table) ── */}
+        <div className="absolute" style={{ top: '2.5%', left: '33%' }}>
+          <T table={g("D-7")} onClick={c("D-7")} w={70} h={66} />
         </div>
 
-        {/* BAR */}
-        <div className="absolute" style={{ top: 430, left: '54%' }}>
-          <div className="w-[110px] md:w-[130px] h-[50px] md:h-[58px] border-2 border-primary/30 rounded-lg bg-primary/5 flex items-center justify-center">
-            <span className="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-primary/70 font-semibold">🍸 BAR</span>
-          </div>
+        {/* ── D-8 (center-top, large arch table) ── */}
+        <div className="absolute" style={{ top: '2.5%', left: '48%' }}>
+          <T table={g("D-8")} onClick={c("D-8")} w={70} h={66} />
         </div>
 
-        {/* A-1 ~ A-4 (right side, vertical stack) */}
-        <div className="absolute flex flex-col gap-2" style={{ top: 385, right: '3%' }}>
-          <TableButton table={t("A-1")} onClick={click("A-1")} size="small" />
-          <TableButton table={t("A-2")} onClick={click("A-2")} size="small" />
-          <TableButton table={t("A-3")} onClick={click("A-3")} size="small" />
-          <TableButton table={t("A-4")} onClick={click("A-4")} size="small" />
+        {/* ── STAGE (top-right corner) ── */}
+        <div className="absolute" style={{ top: '2%', left: '72%' }}>
+          <Box label="🎤 STAGE" w={140} h={72} />
         </div>
 
-        {/* ══════════ ROW 5: TOILET MAN | STAIRS lower — top: ~500 ══════════ */}
-        {/* Toilet Man */}
-        <div className="absolute" style={{ top: 520, left: '10%' }}>
-          <Landmark label="🚹 WC" />
-        </div>
-        {/* STAIRS lower */}
-        <div className="absolute" style={{ top: 510, left: '28%' }}>
-          <div className="w-[130px] md:w-[160px] h-[40px] border border-border/40 rounded-lg bg-secondary/20 flex items-center justify-center">
-            <span className="text-[9px] md:text-[10px] tracking-[0.15em] uppercase text-muted-foreground/50">↗ STAIRS</span>
-          </div>
+        {/* ── C-2 (left side, below C-3) ── */}
+        <div className="absolute" style={{ top: '14%', left: '4%' }}>
+          <T table={g("C-2")} onClick={c("C-2")} w={54} h={54} />
         </div>
 
-        {/* ══════════ ROW 6: B-3 | B-4, B-5 | A-5~A-8 — top: ~620 ══════════ */}
-        <div className="absolute" style={{ top: 630, left: '2%' }}>
-          <TableButton table={t("B-3")} onClick={click("B-3")} size="large" />
+        {/* ── D-6 through D-2 (horizontal row, center) ── */}
+        <div className="absolute" style={{ top: '14%', left: '26%' }}>
+          <T table={g("D-6")} onClick={c("D-6")} w={58} h={58} />
         </div>
-        <div className="absolute" style={{ top: 630, left: '28%' }}>
-          <TableButton table={t("B-4")} onClick={click("B-4")} size="large" />
+        <div className="absolute" style={{ top: '14%', left: '35%' }}>
+          <T table={g("D-5")} onClick={c("D-5")} w={58} h={58} />
         </div>
-        <div className="absolute" style={{ top: 630, left: '45%' }}>
-          <TableButton table={t("B-5")} onClick={click("B-5")} size="large" />
+        <div className="absolute" style={{ top: '14%', left: '44%' }}>
+          <T table={g("D-4")} onClick={c("D-4")} w={58} h={58} />
         </div>
-        {/* A-5 ~ A-8 */}
-        <div className="absolute flex flex-col gap-2" style={{ top: 610, right: '3%' }}>
-          <TableButton table={t("A-5")} onClick={click("A-5")} size="small" />
-          <TableButton table={t("A-6")} onClick={click("A-6")} size="small" />
-          <TableButton table={t("A-7")} onClick={click("A-7")} size="small" />
-          <TableButton table={t("A-8")} onClick={click("A-8")} size="small" />
+        <div className="absolute" style={{ top: '14%', left: '53%' }}>
+          <T table={g("D-3")} onClick={c("D-3")} w={58} h={58} />
         </div>
-        {/* RIGHT WINDOW lower */}
-        <div className="absolute" style={{ top: 650, right: 0, writingMode: 'vertical-rl' as const }}>
-          <WindowLabel />
+        <div className="absolute" style={{ top: '14%', left: '62%' }}>
+          <T table={g("D-2")} onClick={c("D-2")} w={58} h={58} />
         </div>
 
-        {/* ══════════ ROW 7: B-2, B-1 | B-6 | A-9 — top: ~740 ══════════ */}
-        <div className="absolute" style={{ top: 740, left: '2%' }}>
-          <TableButton table={t("B-2")} onClick={click("B-2")} size="large" />
-        </div>
-        <div className="absolute" style={{ top: 815, left: '8%' }}>
-          <TableButton table={t("B-1")} onClick={click("B-1")} />
-        </div>
-        <div className="absolute" style={{ top: 760, left: '38%' }}>
-          <TableButton table={t("B-6")} onClick={click("B-6")} size="large" />
-        </div>
-        {/* A-9 */}
-        <div className="absolute" style={{ top: 770, left: '60%' }}>
-          <TableButton table={t("A-9")} onClick={click("A-9")} />
+        {/* ── C-1 (left, mid section) ── */}
+        <div className="absolute" style={{ top: '29%', left: '9%' }}>
+          <T table={g("C-1")} onClick={c("C-1")} w={52} h={52} />
         </div>
 
-        {/* ── BOTTOM WINDOWS ── */}
-        <div className="absolute bottom-[5px] left-[3%] right-[15%] flex justify-around">
-          <WindowLabel />
-          <WindowLabel />
+        {/* ── VIP-2 (far left, below C-1) ── */}
+        <div className="absolute" style={{ top: '34%', left: '1%' }}>
+          <T table={g("VIP-2")} onClick={c("VIP-2")} w={80} h={52} />
         </div>
 
-        {/* ══════════ ZONE LEGEND ══════════ */}
-        <div className="absolute bottom-[-35px] left-0 right-0 flex flex-wrap justify-center gap-5 pt-3 border-t border-border/30">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-primary/40 border border-primary/60" />
-            <span className="text-[9px] md:text-[10px] tracking-wider uppercase text-primary font-medium">A — Бар хэсэг</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-blue-400/40 border border-blue-400/60" />
-            <span className="text-[9px] md:text-[10px] tracking-wider uppercase text-blue-400 font-medium">B — Төв зал</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-emerald-400/40 border border-emerald-400/60" />
-            <span className="text-[9px] md:text-[10px] tracking-wider uppercase text-emerald-400 font-medium">C — Chill Zone</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-sm bg-rose-400/40 border border-rose-400/60" />
-            <span className="text-[9px] md:text-[10px] tracking-wider uppercase text-rose-400 font-medium">D — Үндсэн зал</span>
-          </div>
+        {/* ── STAIRS upper ── */}
+        <div className="absolute" style={{ top: '29%', left: '22%' }}>
+          <Box label="↗ STAIRS" w={140} h={38} />
+        </div>
+
+        {/* ── D-1 (large, center-right) ── */}
+        <div className="absolute" style={{ top: '28%', left: '50%' }}>
+          <T table={g("D-1")} onClick={c("D-1")} w={72} h={68} />
+        </div>
+
+        {/* ── D-9 (right side, window) ── */}
+        <div className="absolute" style={{ top: '27%', left: '80%' }}>
+          <T table={g("D-9")} onClick={c("D-9")} w={48} h={48} />
+        </div>
+
+        {/* ── D-10 (below D-9, window) ── */}
+        <div className="absolute" style={{ top: '34%', left: '80%' }}>
+          <T table={g("D-10")} onClick={c("D-10")} w={48} h={48} />
+        </div>
+
+        {/* ── TOILET WOMAN ── */}
+        <div className="absolute" style={{ top: '44%', left: '10%' }}>
+          <Box label="🚺 WC" w={70} h={34} />
+        </div>
+
+        {/* ── ELEVATOR x2 ── */}
+        <div className="absolute" style={{ top: '42%', left: '28%' }}>
+          <Box label="🛗 ЛИФТ" w={76} h={52} />
+        </div>
+        <div className="absolute" style={{ top: '42%', left: '40%' }}>
+          <Box label="🛗 ЛИФТ" w={76} h={52} />
+        </div>
+
+        {/* ── VIP-1 (far left, mid-lower) ── */}
+        <div className="absolute" style={{ top: '49%', left: '1%' }}>
+          <T table={g("VIP-1")} onClick={c("VIP-1")} w={80} h={52} />
+        </div>
+
+        {/* ── BAR (center-right area) ── */}
+        <div className="absolute" style={{ top: '46%', left: '55%' }}>
+          <Box label="🍸 BAR" w={120} h={50} accent />
+        </div>
+
+        {/* ── STAIRS lower ── */}
+        <div className="absolute" style={{ top: '52%', left: '28%' }}>
+          <Box label="↗ STAIRS" w={140} h={38} />
+        </div>
+
+        {/* ── TOILET MAN ── */}
+        <div className="absolute" style={{ top: '54%', left: '10%' }}>
+          <Box label="🚹 WC" w={70} h={34} />
+        </div>
+
+        {/* ── A-1 ~ A-4 (right wall, vertical column) ── */}
+        <div className="absolute" style={{ top: '42%', left: '86%' }}>
+          <T table={g("A-1")} onClick={c("A-1")} w={44} h={44} />
+        </div>
+        <div className="absolute" style={{ top: '48%', left: '86%' }}>
+          <T table={g("A-2")} onClick={c("A-2")} w={44} h={44} />
+        </div>
+        <div className="absolute" style={{ top: '54%', left: '86%' }}>
+          <T table={g("A-3")} onClick={c("A-3")} w={44} h={44} />
+        </div>
+        <div className="absolute" style={{ top: '60%', left: '86%' }}>
+          <T table={g("A-4")} onClick={c("A-4")} w={44} h={44} />
+        </div>
+
+        {/* ── B-3 (bottom-left, window) ── */}
+        <div className="absolute" style={{ top: '70%', left: '2%' }}>
+          <T table={g("B-3")} onClick={c("B-3")} w={60} h={62} />
+        </div>
+
+        {/* ── B-4 (bottom center-left) ── */}
+        <div className="absolute" style={{ top: '70%', left: '28%' }}>
+          <T table={g("B-4")} onClick={c("B-4")} w={66} h={62} />
+        </div>
+
+        {/* ── B-5 (bottom center) ── */}
+        <div className="absolute" style={{ top: '70%', left: '44%' }}>
+          <T table={g("B-5")} onClick={c("B-5")} w={66} h={62} />
+        </div>
+
+        {/* ── A-5 ~ A-8 (right wall, lower column, window) ── */}
+        <div className="absolute" style={{ top: '68%', left: '86%' }}>
+          <T table={g("A-5")} onClick={c("A-5")} w={44} h={44} />
+        </div>
+        <div className="absolute" style={{ top: '74%', left: '86%' }}>
+          <T table={g("A-6")} onClick={c("A-6")} w={44} h={44} />
+        </div>
+        <div className="absolute" style={{ top: '80%', left: '86%' }}>
+          <T table={g("A-7")} onClick={c("A-7")} w={44} h={44} />
+        </div>
+        <div className="absolute" style={{ top: '86%', left: '86%' }}>
+          <T table={g("A-8")} onClick={c("A-8")} w={44} h={44} />
+        </div>
+
+        {/* ── B-2 (bottom-left, window) ── */}
+        <div className="absolute" style={{ top: '80%', left: '2%' }}>
+          <T table={g("B-2")} onClick={c("B-2")} w={60} h={62} />
+        </div>
+
+        {/* ── B-1 (below B-2) ── */}
+        <div className="absolute" style={{ top: '88%', left: '10%' }}>
+          <T table={g("B-1")} onClick={c("B-1")} w={50} h={50} />
+        </div>
+
+        {/* ── B-6 (bottom center) ── */}
+        <div className="absolute" style={{ top: '82%', left: '38%' }}>
+          <T table={g("B-6")} onClick={c("B-6")} w={66} h={62} />
+        </div>
+
+        {/* ── A-9 (bottom, near center-right) ── */}
+        <div className="absolute" style={{ top: '84%', left: '60%' }}>
+          <T table={g("A-9")} onClick={c("A-9")} w={50} h={50} />
+        </div>
+
+      </div>
+
+      {/* ── Zone Legend ── */}
+      <div className="flex flex-wrap justify-center gap-5 py-4 border-t border-border/30 mt-2">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm bg-primary/40 border border-primary/60" />
+          <span className="text-[9px] tracking-wider uppercase text-primary font-medium">A — Бар</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm bg-blue-400/40 border border-blue-400/60" />
+          <span className="text-[9px] tracking-wider uppercase text-blue-400 font-medium">B — Төв зал</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm bg-emerald-400/40 border border-emerald-400/60" />
+          <span className="text-[9px] tracking-wider uppercase text-emerald-400 font-medium">C — Chill</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm bg-rose-400/40 border border-rose-400/60" />
+          <span className="text-[9px] tracking-wider uppercase text-rose-400 font-medium">D — Үндсэн</span>
         </div>
       </div>
-      {/* spacer for legend */}
-      <div className="h-12" />
     </div>
   );
 };
