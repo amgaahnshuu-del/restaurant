@@ -84,7 +84,7 @@ const categories: { key: string; label: string; items: MenuItem[] }[] = [
 ];
 
 const MenuSection = () => {
-  const [activeCategory, setActiveCategory] = useState("main");
+  const [activeCategory, setActiveCategory] = useState("snack");
   const activeItems = categories.find((c) => c.key === activeCategory)?.items ?? [];
 
   return (
