@@ -24,47 +24,61 @@ type MenuItem = {
 
 const categories: { key: string; label: string; items: MenuItem[] }[] = [
   {
-    key: "main",
-    label: "Үндсэн хоол",
+    key: "snack",
+    label: "Snack",
     items: [
-      { image: dish1, name: "Шарсан фуа гра", description: " чимэглэлтэй", price: "₮000" },
-      { image: dish4, name: "Вагью үхрийн мах", description: "А5 зэрэглэлийн вагью үхрийн мах, трюфель соустой", price: "₮145,000" },
-      { image: dish5, name: "Шарсан салмон", description: "Шарсан салмон филе, сарнайн цөцгийн тос, аспарагустай", price: "₮98,000" },
-      { image: dish6, name: "Мөөгний ризотто", description: "Мөөгний ризотто, пармезан бяслаг, трюфель тостой", price: "₮78,000" },
-      { image: dish3, name: "Лобстер", description: "Лобстер, хясаа, далайн гахай, трюфель тосон дүүжинтэй", price: "₮125,000" },
+      { image: appetizer1, name: "Брускетта", description: "Италийн прошутто, инжир, зөгийн бал, рикотта бяслагтай", price: "₮45,000" },
     ],
   },
   {
-    key: "appetizer",
-    label: "Зууш",
+    key: "cold-appetizer",
+    label: "Cold Appetizer & Salad",
     items: [
-      { image: appetizer1, name: "Брускетта", description: "Италийн прошутто, инжир, зөгийн бал, рикотта бяслагтай", price: "₮45,000" },
       { image: appetizer2, name: "Тунаг загас", description: "Шинэхэн тунаг загас, авокадо, васаби соустой", price: "₮55,000" },
     ],
   },
   {
-    key: "dessert",
-    label: "Амттан",
+    key: "soup",
+    label: "Soup",
     items: [
-      { image: dish2, name: "Шоколад суфле", description: "Гурван давхар шоколад бялуу, карамель ба ваниль мөс", price: "₮65,000" },
+      { image: dish1, name: "Шарсан фуа гра", description: "Чимэглэлтэй", price: "₮000" },
+    ],
+  },
+  {
+    key: "italian-soup",
+    label: "Italian Soup",
+    items: [
+      { image: dish4, name: "Минестроне", description: "Италийн уламжлалт ногооны шөл, пармезан бяслагтай", price: "₮38,000" },
+    ],
+  },
+  {
+    key: "mongolian-soup",
+    label: "Mongolian Soup",
+    items: [
+      { image: dish3, name: "Монгол шөл", description: "Үхрийн махтай уламжлалт монгол шөл", price: "₮32,000" },
+    ],
+  },
+  {
+    key: "asia-mongolia",
+    label: "Asia & Mongolia",
+    items: [
+      { image: dish6, name: "Мөөгний ризотто", description: "Мөөгний ризотто, пармезан бяслаг, трюфель тостой", price: "₮78,000" },
+    ],
+  },
+  {
+    key: "main-course",
+    label: "Main Course",
+    items: [
+      { image: dish5, name: "Шарсан салмон", description: "Шарсан салмон филе, сарнайн цөцгийн тос, аспарагустай", price: "₮98,000" },
+      { image: dish2, name: "Вагью үхрийн мах", description: "А5 зэрэглэлийн вагью үхрийн мах, трюфель соустой", price: "₮145,000" },
+    ],
+  },
+  {
+    key: "share-food",
+    label: "Share Food",
+    items: [
       { image: dessert1, name: "Ваниль крем брюле", description: "Классик ваниль крем брюле, улирлын жимстэй", price: "₮42,000" },
       { image: dessert2, name: "Тирамису", description: "Италийн уламжлалт тирамису, маскарпоне бяслагтай", price: "₮48,000" },
-    ],
-  },
-  {
-    key: "drinks",
-    label: "Ундаа",
-    items: [
-      { image: drink1, name: "Gusto Negroni", description: "Жин, Кампари, улаан вермут, жүржийн хальстай", price: "₮35,000" },
-      { image: drink2, name: "Жимсний коктейль", description: "Улирлын жимсний коктейль, наранцацгийн шүүстэй", price: "₮28,000" },
-    ],
-  },
-  {
-    key: "wine",
-    label: "Дарс",
-    items: [
-      { image: wine1, name: "Château Margaux 2015", description: "Бордо, Франц — бүрэн биетэй, ягодны амттай улаан дарс", price: "₮320,000" },
-      { image: wine2, name: "Chablis Grand Cru", description: "Бургунд, Франц — шинэлэг, минерал амттай цагаан дарс", price: "₮185,000" },
     ],
   },
 ];
