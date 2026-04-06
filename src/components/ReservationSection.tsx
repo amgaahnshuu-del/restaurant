@@ -194,8 +194,16 @@ const ReservationSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-12"
+          className="mb-12 relative"
         >
+          {isLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-sm rounded-xl">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <span className="font-sans text-[11px] tracking-[0.15em] uppercase text-muted-foreground">Ачаалж байна...</span>
+              </div>
+            </div>
+          )}
           <FloorPlan tables={tables} onTableClick={handleTableClick} />
         </motion.div>
 
