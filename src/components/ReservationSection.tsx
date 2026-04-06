@@ -143,16 +143,16 @@ const ReservationSection = () => {
         </motion.div>
 
         {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-6 mb-10">
+        <div className="flex flex-wrap justify-center gap-8 mb-12">
           {[
-            { label: "Сул", className: "bg-secondary border-border" },
-            { label: "Сонгосон", className: "bg-primary/30 border-primary ring-2 ring-primary/40" },
-            { label: "Захиалагдсан", className: "bg-muted/50 border-muted-foreground/20 opacity-50" },
-            { label: "Цонхны талд", className: "bg-secondary border-border border-dashed" },
+            { label: "Сул", className: "bg-white/[0.03] border-white/[0.08]" },
+            { label: "Сонгосон", className: "bg-primary/20 border-primary/50 ring-2 ring-primary/30" },
+            { label: "Захиалагдсан", className: "bg-muted/20 border-muted-foreground/10 opacity-30" },
+            { label: "Цонхны талд", className: "bg-white/[0.03] border-white/[0.08] border-dashed" },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-md border ${item.className}`} />
-              <span className="font-sans text-xs tracking-wider uppercase text-muted-foreground">
+            <div key={item.label} className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-lg border ${item.className}`} />
+              <span className="font-sans text-[11px] tracking-[0.15em] uppercase text-muted-foreground/70">
                 {item.label}
               </span>
             </div>
