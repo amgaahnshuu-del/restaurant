@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +54,35 @@ const ReservationSection = () => {
   const [phone, setPhone] = useState("");
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load booked tables from DB
+  useEffect(() => {
+    const loadReservations = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabase
+          .from("reservations")
+          .select("table_id")
+          .gte("reservation_date", today)
+          .eq("status", "confirmed");
+        
+        if (!error && data) {
+          const bookedIds = new Set(data.map((r) => r.table_id));
+          setTables((prev) =>
+            prev.map((t) =>
+              bookedIds.has(t.id) ? { ...t, status: "booked" as TableStatus } : t
+            )
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load reservations:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadReservations();
+  }, []);
 
   const selectedTable = tables.find((t) => t.status === "selected");
 
@@ -165,8 +194,16 @@ const ReservationSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mb-12"
+          className="mb-12 relative"
         >
+          {isLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/60 backdrop-blur-sm rounded-xl">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <span className="font-sans text-[11px] tracking-[0.15em] uppercase text-muted-foreground">Ачаалж байна...</span>
+              </div>
+            </div>
+          )}
           <FloorPlan tables={tables} onTableClick={handleTableClick} />
         </motion.div>
 
