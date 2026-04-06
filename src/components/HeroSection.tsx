@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-restaurant.jpg";
 import gustoLogo from "@/assets/gusto-logo.png";
 
@@ -29,7 +30,6 @@ const HeroSection = () => {
         <div className="hidden md:flex items-center gap-8">
           {[
             { label: "Тухай", href: "#тухай" },
-            { label: "Цэс", href: "#цэс" },
             { label: "Галерей", href: "#галерей" },
             { label: "Захиалга", href: "#захиалга" },
             { label: "Холбоо барих", href: "#холбоо" },
@@ -42,6 +42,12 @@ const HeroSection = () => {
               {item.label}
             </a>
           ))}
+          <Link
+            to="/menu"
+            className="font-sans text-xs tracking-[0.2em] uppercase text-primary hover:text-foreground transition-colors duration-300"
+          >
+            Цэс
+          </Link>
         </div>
         <span className="font-sans text-xs tracking-[0.3em] uppercase text-muted-foreground">
           Улаанбаатар
