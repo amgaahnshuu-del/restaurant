@@ -54,6 +54,35 @@ const ReservationSection = () => {
   const [phone, setPhone] = useState("");
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load booked tables from DB
+  useEffect(() => {
+    const loadReservations = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabase
+          .from("reservations")
+          .select("table_id")
+          .gte("reservation_date", today)
+          .eq("status", "confirmed");
+        
+        if (!error && data) {
+          const bookedIds = new Set(data.map((r) => r.table_id));
+          setTables((prev) =>
+            prev.map((t) =>
+              bookedIds.has(t.id) ? { ...t, status: "booked" as TableStatus } : t
+            )
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load reservations:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadReservations();
+  }, []);
 
   const selectedTable = tables.find((t) => t.status === "selected");
 
