@@ -1,95 +1,25 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import dish1 from "@/assets/dish-1.jpg";
-import dish2 from "@/assets/dish-2.jpg";
-import dish3 from "@/assets/dish-3.jpg";
-import dish4 from "@/assets/dish-4.png";
-import dish5 from "@/assets/dish-5.png";
-import dish6 from "@/assets/dish-6.png";
-import drink1 from "@/assets/drink-1.jpg";
-import drink2 from "@/assets/drink-2.jpg";
-import wine1 from "@/assets/wine-1.jpg";
-import wine2 from "@/assets/wine-2.jpg";
-import appetizer1 from "@/assets/appetizer-1.jpg";
-import appetizer2 from "@/assets/appetizer-2.jpg";
-import dessert1 from "@/assets/dessert-1.jpg";
-import dessert2 from "@/assets/dessert-2.jpg";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import signatureDish1 from "@/assets/signature-dish-1.jpg";
+import signatureDish2 from "@/assets/signature-dish-2.jpg";
+import signatureDish3 from "@/assets/signature-dish-3.jpg";
+import cocktail1 from "@/assets/cocktail-1.jpg";
+import cocktail2 from "@/assets/cocktail-2.jpg";
+import cocktail3 from "@/assets/cocktail-3.jpg";
 
-type MenuItem = {
-  image: string;
-  name: string;
-  description: string;
-  price: string;
-};
-
-const categories: { key: string; label: string; items: MenuItem[] }[] = [
-  {
-    key: "snack",
-    label: "Snack",
-    items: [
-      { image: appetizer1, name: "Брускетта", description: "Италийн прошутто, инжир, зөгийн бал, рикотта бяслагтай", price: "₮45,000" },
-    ],
-  },
-  {
-    key: "cold-appetizer",
-    label: "Cold Appetizer & Salad",
-    items: [
-      { image: appetizer2, name: "Тунаг загас", description: "Шинэхэн тунаг загас, авокадо, васаби соустой", price: "₮55,000" },
-    ],
-  },
-  {
-    key: "soup",
-    label: "Soup",
-    items: [
-      { image: dish1, name: "Шарсан фуа гра", description: "Чимэглэлтэй", price: "₮000" },
-    ],
-  },
-  {
-    key: "italian-soup",
-    label: "Italian Soup",
-    items: [
-      { image: dish4, name: "Минестроне", description: "Италийн уламжлалт ногооны шөл, пармезан бяслагтай", price: "₮38,000" },
-    ],
-  },
-  {
-    key: "mongolian-soup",
-    label: "Mongolian Soup",
-    items: [
-      { image: dish3, name: "Монгол шөл", description: "Үхрийн махтай уламжлалт монгол шөл", price: "₮32,000" },
-    ],
-  },
-  {
-    key: "asia-mongolia",
-    label: "Asia & Mongolia",
-    items: [
-      { image: dish6, name: "Мөөгний ризотто", description: "Мөөгний ризотто, пармезан бяслаг, трюфель тостой", price: "₮78,000" },
-    ],
-  },
-  {
-    key: "main-course",
-    label: "Main Course",
-    items: [
-      { image: dish5, name: "Шарсан салмон", description: "Шарсан салмон филе, сарнайн цөцгийн тос, аспарагустай", price: "₮98,000" },
-      { image: dish2, name: "Вагью үхрийн мах", description: "А5 зэрэглэлийн вагью үхрийн мах, трюфель соустой", price: "₮145,000" },
-    ],
-  },
-  {
-    key: "share-food",
-    label: "Share Food",
-    items: [
-      { image: dessert1, name: "Ваниль крем брюле", description: "Классик ваниль крем брюле, улирлын жимстэй", price: "₮42,000" },
-      { image: dessert2, name: "Тирамису", description: "Италийн уламжлалт тирамису, маскарпоне бяслагтай", price: "₮48,000" },
-    ],
-  },
+const highlights = [
+  { image: signatureDish1, name: "Вагью Стейк", price: "₮145,000" },
+  { image: cocktail1, name: "Old Fashioned", price: "₮28,000" },
+  { image: signatureDish2, name: "Шарсан Салмон", price: "₮98,000" },
+  { image: cocktail2, name: "Espresso Martini", price: "₮32,000" },
+  { image: signatureDish3, name: "Мөөгний Ризотто", price: "₮78,000" },
+  { image: cocktail3, name: "Negroni", price: "₮30,000" },
 ];
 
 const MenuSection = () => {
-  const [activeCategory, setActiveCategory] = useState("snack");
-  const activeItems = categories.find((c) => c.key === activeCategory)?.items ?? [];
-
   return (
-    <section id="цэс" className="py-32 px-8 lg:px-16 bg-card">
-      <div className="max-w-6xl mx-auto">
+    <section id="цэс" className="py-32 px-6 lg:px-16 bg-card/50">
+      <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -97,77 +27,63 @@ const MenuSection = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-16"
         >
-          <span className="font-sans text-xs tracking-[0.4em] uppercase text-primary divider-ornament">
-            Онцлох цэс
+          <span className="font-sans text-[11px] tracking-[0.4em] uppercase text-primary/70">
+            ✦ Онцлох цэс ✦
           </span>
-          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light text-foreground mt-8">
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-light text-foreground mt-6 mb-4">
             Шилдэг <span className="italic text-primary">амтууд</span>
           </h2>
+          <p className="font-body text-lg text-muted-foreground/60 max-w-lg mx-auto">
+            Манай тогоочийн онцлох хоол ба коктейлнууд
+          </p>
         </motion.div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 md:gap-6 mb-16">
-          {categories.map((cat) => (
-            <button
-              key={cat.key}
-              onClick={() => setActiveCategory(cat.key)}
-              className={`font-sans text-xs md:text-sm tracking-[0.15em] uppercase px-4 py-2 border transition-all duration-300 ${
-                activeCategory === cat.key
-                  ? "border-primary text-primary bg-primary/10"
-                  : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-              }`}
+        {/* 6 Highlights Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-14">
+          {highlights.map((item, i) => (
+            <motion.div
+              key={item.name}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="group relative overflow-hidden rounded-xl aspect-[4/5]"
             >
-              {cat.label}
-            </button>
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
+                <span className="font-sans text-[9px] md:text-[10px] tracking-[0.2em] uppercase text-primary/80 block mb-1">
+                  {item.price}
+                </span>
+                <h3 className="font-display text-base md:text-lg text-white">
+                  {item.name}
+                </h3>
+              </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* Menu Items */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeCategory}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4 }}
-            className="grid md:grid-cols-3 gap-8"
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center"
+        >
+          <Link
+            to="/menu"
+            className="inline-flex items-center gap-3 border border-primary/30 rounded-full px-10 py-4 font-sans text-[11px] tracking-[0.25em] uppercase text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-500 group"
           >
-            {activeItems.map((item, index) => (
-              <motion.div
-                key={item.name}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group"
-              >
-                <div className="relative overflow-hidden mb-6">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full aspect-square object-cover transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-4 mb-3">
-                    <span className="h-px flex-1 bg-border" />
-                    <span className="font-sans text-xs tracking-[0.2em] text-primary">
-                      {item.price}
-                    </span>
-                    <span className="h-px flex-1 bg-border" />
-                  </div>
-                  <h3 className="font-display text-2xl text-foreground mb-2">
-                    {item.name}
-                  </h3>
-                  <p className="font-body text-sm text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+            Бүрэн цэс үзэх
+            <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
