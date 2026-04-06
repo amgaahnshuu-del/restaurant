@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 type TableStatus = "available" | "booked" | "selected";
 
 type TableInfo = {
@@ -15,6 +17,13 @@ type FloorPlanProps = {
   onTableClick: (id: string) => void;
 };
 
+const zoneColors: Record<string, { bg: string; border: string; ring: string; text: string; glow: string }> = {
+  A: { bg: "bg-amber-500/15", border: "border-amber-400/50", ring: "ring-amber-400/40", text: "text-amber-300", glow: "shadow-amber-500/20" },
+  B: { bg: "bg-sky-500/15", border: "border-sky-400/50", ring: "ring-sky-400/40", text: "text-sky-300", glow: "shadow-sky-500/20" },
+  C: { bg: "bg-emerald-500/15", border: "border-emerald-400/50", ring: "ring-emerald-400/40", text: "text-emerald-300", glow: "shadow-emerald-500/20" },
+  D: { bg: "bg-rose-500/15", border: "border-rose-400/50", ring: "ring-rose-400/40", text: "text-rose-300", glow: "shadow-rose-500/20" },
+};
+
 /* ─── Table button ─── */
 const T = ({
   table, onClick, w = 52, h = 52,
@@ -23,38 +32,45 @@ const T = ({
 }) => {
   const booked = table.status === "booked";
   const selected = table.status === "selected";
-  const ring: Record<string, string> = { A: "ring-primary/60", B: "ring-blue-400/60", C: "ring-emerald-400/60", D: "ring-rose-400/60" };
-  const border: Record<string, string> = { A: "border-primary", B: "border-blue-400", C: "border-emerald-400", D: "border-rose-400" };
+  const z = zoneColors[table.zone];
 
   return (
-    <button
-      onClick={onClick} disabled={booked}
+    <motion.button
+      whileHover={!booked ? { scale: 1.08 } : undefined}
+      whileTap={!booked ? { scale: 0.95 } : undefined}
+      onClick={onClick}
+      disabled={booked}
       title={`${table.id} — ${table.capacity}${table.isWindow ? " (Цонх)" : ""}${table.isVip ? " (VIP)" : ""}`}
       style={{ width: w, height: h }}
       className={`
-        rounded-md flex flex-col items-center justify-center transition-all duration-200 font-sans relative shrink-0
-        ${table.isWindow ? "border-2 border-dashed" : "border-2"}
+        rounded-lg flex flex-col items-center justify-center transition-all duration-300 font-sans relative shrink-0 backdrop-blur-sm
+        ${table.isWindow ? "border border-dashed" : "border"}
         ${booked
-          ? "bg-muted/30 border-muted-foreground/20 opacity-40 cursor-not-allowed"
+          ? "bg-muted/20 border-muted-foreground/10 opacity-30 cursor-not-allowed"
           : selected
-          ? `bg-primary/20 ${border[table.zone]} ring-2 ${ring[table.zone]} scale-110 shadow-lg shadow-primary/20 z-10`
+          ? `${z.bg} ${z.border} ring-2 ${z.ring} shadow-lg ${z.glow} z-10`
           : table.isVip
-          ? "bg-accent/20 border-accent/50 hover:border-primary/50 hover:bg-primary/10 cursor-pointer hover:scale-105"
-          : "bg-secondary/80 border-border hover:border-primary/50 hover:bg-primary/10 cursor-pointer hover:scale-105"
+          ? "bg-gradient-to-br from-primary/15 to-primary/5 border-primary/30 hover:border-primary/60 cursor-pointer hover:shadow-md hover:shadow-primary/10"
+          : "bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.15] cursor-pointer"
         }
       `}
     >
-      <span className={`text-[9px] md:text-[10px] tracking-wider uppercase font-bold leading-none ${
-        booked ? "text-muted-foreground/50" : selected ? "text-primary" : "text-foreground/80"
+      <span className={`text-[9px] md:text-[10px] tracking-wider uppercase font-semibold leading-none ${
+        booked ? "text-muted-foreground/30" : selected ? z.text : "text-foreground/70"
       }`}>{table.id}</span>
-      <span className={`text-[7px] md:text-[8px] leading-none mt-0.5 ${
-        booked ? "text-muted-foreground/30" : "text-muted-foreground/60"
+      <span className={`text-[7px] md:text-[8px] leading-none mt-1 ${
+        booked ? "text-muted-foreground/20" : selected ? "text-foreground/50" : "text-muted-foreground/40"
       }`}>{table.capacity}</span>
       {table.isVip && !booked && !selected && (
-        <span className="absolute -top-1.5 -right-1.5 text-[7px] bg-accent text-accent-foreground px-1 rounded font-bold leading-tight">VIP</span>
+        <span className="absolute -top-1.5 -right-1.5 text-[6px] bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-1.5 py-0.5 rounded-full font-bold leading-none tracking-wider">VIP</span>
       )}
-      {booked && <span className="absolute inset-0 flex items-center justify-center text-destructive/50 text-base font-bold">✕</span>}
-    </button>
+      {booked && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-5 h-[1px] bg-muted-foreground/30 rotate-45 absolute" />
+          <div className="w-5 h-[1px] bg-muted-foreground/30 -rotate-45 absolute" />
+        </div>
+      )}
+    </motion.button>
   );
 };
 
@@ -62,13 +78,22 @@ const T = ({
 const Box = ({ label, w = 80, h = 36, accent = false }: { label: string; w?: number; h?: number; accent?: boolean }) => (
   <div
     style={{ width: w, height: h }}
-    className={`flex items-center justify-center rounded-md text-center shrink-0 ${
-      accent ? "border-2 border-primary/25 bg-primary/5" : "border border-border/40 bg-secondary/25"
+    className={`flex items-center justify-center rounded-lg text-center shrink-0 backdrop-blur-sm ${
+      accent
+        ? "border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5"
+        : "border border-white/[0.06] bg-white/[0.02]"
     }`}
   >
-    <span className={`text-[8px] md:text-[9px] tracking-[0.12em] uppercase whitespace-nowrap font-medium ${
-      accent ? "text-primary/60" : "text-muted-foreground/50"
+    <span className={`text-[8px] md:text-[9px] tracking-[0.15em] uppercase whitespace-nowrap font-medium ${
+      accent ? "text-primary/50" : "text-muted-foreground/35"
     }`}>{label}</span>
+  </div>
+);
+
+/* ─── Window Line ─── */
+const WindowLine = ({ style, vertical = false }: { style: React.CSSProperties; vertical?: boolean }) => (
+  <div className="absolute pointer-events-none" style={style}>
+    <div className={`${vertical ? "w-[2px] h-full" : "h-[2px] w-full"} bg-gradient-to-${vertical ? 'b' : 'r'} from-transparent via-primary/15 to-transparent`} />
   </div>
 );
 
@@ -76,85 +101,66 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
   const g = (id: string) => tables.find((tb) => tb.id === id)!;
   const c = (id: string) => () => onTableClick(id);
 
-  /* positions mapped from the PDF blueprint (percentage-based) */
   return (
-    <div className="relative w-full border border-border/50 rounded-md bg-card/50 overflow-x-auto">
+    <div className="relative w-full rounded-xl bg-gradient-to-br from-card/80 via-card/60 to-card/80 border border-white/[0.06] overflow-x-auto shadow-2xl shadow-black/20">
+      {/* Subtle grid pattern */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+        backgroundSize: '24px 24px'
+      }} />
+
       <div className="min-w-[760px] md:min-w-[900px] mx-auto relative" style={{ aspectRatio: '1 / 1.1', maxHeight: 960 }}>
 
-        {/* ── WALLS ── */}
-        <div className="absolute inset-[8px] border-2 border-border/20 rounded pointer-events-none" />
+        {/* ── Outer wall ── */}
+        <div className="absolute inset-[12px] border border-white/[0.06] rounded-lg pointer-events-none" />
 
-        {/* ── WINDOW markers: top ── */}
-        <svg className="absolute top-[8px] left-[2%] w-[30%] h-[8px] pointer-events-none">
-          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute top-[10px] left-[10%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
-        <svg className="absolute top-[8px] left-[34%] w-[34%] h-[8px] pointer-events-none">
-          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute top-[10px] left-[42%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
-        <span className="absolute top-[10px] left-[55%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
-        <svg className="absolute top-[8px] left-[68%] w-[14%] h-[8px] pointer-events-none">
-          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute top-[10px] left-[70%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
+        {/* ── Window markers ── */}
+        <WindowLine style={{ top: 12, left: '2%', width: '30%' }} />
+        <WindowLine style={{ top: 12, left: '34%', width: '34%' }} />
+        <WindowLine style={{ top: 12, left: '68%', width: '14%' }} />
+        <WindowLine style={{ right: 12, top: '28%', height: '18%' }} vertical />
+        <WindowLine style={{ right: 12, top: '72%', height: '18%' }} vertical />
+        <WindowLine style={{ bottom: 12, left: '2%', width: '22%' }} />
+        <WindowLine style={{ bottom: 12, left: '52%', width: '22%' }} />
 
-        {/* ── RIGHT WINDOW markers ── */}
-        <svg className="absolute right-[8px] top-[28%] w-[8px] h-[18%] pointer-events-none">
-          <line x1="4" y1="0" x2="4" y2="100%" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute right-[12px] top-[35%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30" style={{ writingMode: 'vertical-rl' as const }}>window</span>
+        {/* ── Zone dividers (subtle) ── */}
+        <div className="absolute pointer-events-none" style={{ top: '38%', left: '1%', right: '1%' }}>
+          <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+        </div>
+        <div className="absolute pointer-events-none" style={{ top: '64%', left: '1%', right: '1%' }}>
+          <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
+        </div>
 
-        <svg className="absolute right-[8px] top-[72%] w-[8px] h-[18%] pointer-events-none">
-          <line x1="4" y1="0" x2="4" y2="100%" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute right-[12px] top-[79%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30" style={{ writingMode: 'vertical-rl' as const }}>window</span>
+        {/* ════════════════════════════════
+            TABLES — positioned by %
+            ════════════════════════════════ */}
 
-        {/* ── BOTTOM WINDOW markers ── */}
-        <svg className="absolute bottom-[8px] left-[2%] w-[22%] h-[8px] pointer-events-none">
-          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute bottom-[10px] left-[6%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
-        <svg className="absolute bottom-[8px] left-[52%] w-[22%] h-[8px] pointer-events-none">
-          <line x1="0" y1="4" x2="100%" y2="4" stroke="hsl(var(--border))" strokeWidth="2" strokeDasharray="6 4" opacity="0.4" />
-        </svg>
-        <span className="absolute bottom-[10px] left-[57%] text-[7px] tracking-[0.15em] uppercase text-muted-foreground/30">window</span>
-
-        {/* ════════════════════════════════════════════════
-            TABLES — positioned by % to match PDF exactly
-            ════════════════════════════════════════════════ */}
-
-        {/* ── C-3 (top-left, window) ── */}
+        {/* ── C-3 ── */}
         <div className="absolute" style={{ top: '3%', left: '2%' }}>
           <T table={g("C-3")} onClick={c("C-3")} w={48} h={56} />
         </div>
-
-        {/* ── C-4 (next to C-3, slightly larger) ── */}
+        {/* ── C-4 ── */}
         <div className="absolute" style={{ top: '2.5%', left: '11%' }}>
           <T table={g("C-4")} onClick={c("C-4")} w={66} h={62} />
         </div>
-
-        {/* ── D-7 (center-top, large arch table) ── */}
+        {/* ── D-7 ── */}
         <div className="absolute" style={{ top: '2.5%', left: '33%' }}>
           <T table={g("D-7")} onClick={c("D-7")} w={70} h={66} />
         </div>
-
-        {/* ── D-8 (center-top, large arch table) ── */}
+        {/* ── D-8 ── */}
         <div className="absolute" style={{ top: '2.5%', left: '48%' }}>
           <T table={g("D-8")} onClick={c("D-8")} w={70} h={66} />
         </div>
-
-        {/* ── STAGE (top-right corner) ── */}
+        {/* ── STAGE ── */}
         <div className="absolute" style={{ top: '2%', left: '72%' }}>
-          <Box label="🎤 STAGE" w={140} h={72} />
+          <Box label="🎤 ТАЙЗ" w={140} h={72} />
         </div>
 
-        {/* ── C-2 (left side, below C-3) ── */}
+        {/* ── C-2 ── */}
         <div className="absolute" style={{ top: '14%', left: '4%' }}>
           <T table={g("C-2")} onClick={c("C-2")} w={54} h={54} />
         </div>
-
-        {/* ── D-6 through D-2 (horizontal row, center) ── */}
+        {/* ── D-6 ~ D-2 ── */}
         <div className="absolute" style={{ top: '14%', left: '26%' }}>
           <T table={g("D-6")} onClick={c("D-6")} w={58} h={58} />
         </div>
@@ -171,70 +177,60 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
           <T table={g("D-2")} onClick={c("D-2")} w={58} h={58} />
         </div>
 
-        {/* ── C-1 (left, mid section) ── */}
+        {/* ── C-1 ── */}
         <div className="absolute" style={{ top: '29%', left: '9%' }}>
           <T table={g("C-1")} onClick={c("C-1")} w={52} h={52} />
         </div>
-
-        {/* ── VIP-2 (far left, below C-1) ── */}
+        {/* ── VIP-2 ── */}
         <div className="absolute" style={{ top: '34%', left: '1%' }}>
           <T table={g("VIP-2")} onClick={c("VIP-2")} w={80} h={52} />
         </div>
-
         {/* ── STAIRS upper ── */}
         <div className="absolute" style={{ top: '29%', left: '22%' }}>
-          <Box label="↗ STAIRS" w={140} h={38} />
+          <Box label="↗ ШАТААР" w={140} h={38} />
         </div>
-
-        {/* ── D-1 (large, center-right) ── */}
+        {/* ── D-1 ── */}
         <div className="absolute" style={{ top: '28%', left: '50%' }}>
           <T table={g("D-1")} onClick={c("D-1")} w={72} h={68} />
         </div>
-
-        {/* ── D-9 (right side, window) ── */}
+        {/* ── D-9 ── */}
         <div className="absolute" style={{ top: '27%', left: '80%' }}>
           <T table={g("D-9")} onClick={c("D-9")} w={48} h={48} />
         </div>
-
-        {/* ── D-10 (below D-9, window) ── */}
+        {/* ── D-10 ── */}
         <div className="absolute" style={{ top: '34%', left: '80%' }}>
           <T table={g("D-10")} onClick={c("D-10")} w={48} h={48} />
         </div>
 
-        {/* ── TOILET WOMAN ── */}
+        {/* ── WC ── */}
         <div className="absolute" style={{ top: '44%', left: '10%' }}>
           <Box label="🚺 WC" w={70} h={34} />
         </div>
-
-        {/* ── ELEVATOR x2 ── */}
+        {/* ── Elevators ── */}
         <div className="absolute" style={{ top: '42%', left: '28%' }}>
           <Box label="🛗 ЛИФТ" w={76} h={52} />
         </div>
         <div className="absolute" style={{ top: '42%', left: '40%' }}>
           <Box label="🛗 ЛИФТ" w={76} h={52} />
         </div>
-
-        {/* ── VIP-1 (far left, mid-lower) ── */}
+        {/* ── VIP-1 ── */}
         <div className="absolute" style={{ top: '49%', left: '1%' }}>
           <T table={g("VIP-1")} onClick={c("VIP-1")} w={80} h={52} />
         </div>
-
-        {/* ── BAR (center-right area) ── */}
+        {/* ── BAR ── */}
         <div className="absolute" style={{ top: '46%', left: '55%' }}>
-          <Box label="🍸 BAR" w={120} h={50} accent />
+          <Box label="🍸 БАР" w={120} h={50} accent />
         </div>
-
         {/* ── STAIRS lower ── */}
         <div className="absolute" style={{ top: '52%', left: '28%' }}>
-          <Box label="↗ STAIRS" w={140} h={38} />
+          <Box label="↗ ШАТААР" w={140} h={38} />
         </div>
-
-        {/* ── TOILET MAN ── */}
+        {/* ── WC ── */}
         <div className="absolute" style={{ top: '54%', left: '10%' }}>
           <Box label="🚹 WC" w={70} h={34} />
         </div>
 
-        {/* ── A-1 ~ A-4 (right wall, vertical column) ── */}
+        {/* ── A-1 ~ A-4 ── */}
         <div className="absolute" style={{ top: '42%', left: '86%' }}>
           <T table={g("A-1")} onClick={c("A-1")} w={44} h={44} />
         </div>
@@ -248,22 +244,20 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
           <T table={g("A-4")} onClick={c("A-4")} w={44} h={44} />
         </div>
 
-        {/* ── B-3 (bottom-left, window) ── */}
+        {/* ── B-3 ── */}
         <div className="absolute" style={{ top: '70%', left: '2%' }}>
           <T table={g("B-3")} onClick={c("B-3")} w={60} h={62} />
         </div>
-
-        {/* ── B-4 (bottom center-left) ── */}
+        {/* ── B-4 ── */}
         <div className="absolute" style={{ top: '70%', left: '28%' }}>
           <T table={g("B-4")} onClick={c("B-4")} w={66} h={62} />
         </div>
-
-        {/* ── B-5 (bottom center) ── */}
+        {/* ── B-5 ── */}
         <div className="absolute" style={{ top: '70%', left: '44%' }}>
           <T table={g("B-5")} onClick={c("B-5")} w={66} h={62} />
         </div>
 
-        {/* ── A-5 ~ A-8 (right wall, lower column, window) ── */}
+        {/* ── A-5 ~ A-8 ── */}
         <div className="absolute" style={{ top: '68%', left: '86%' }}>
           <T table={g("A-5")} onClick={c("A-5")} w={44} h={44} />
         </div>
@@ -277,46 +271,39 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
           <T table={g("A-8")} onClick={c("A-8")} w={44} h={44} />
         </div>
 
-        {/* ── B-2 (bottom-left, window) ── */}
+        {/* ── B-2 ── */}
         <div className="absolute" style={{ top: '80%', left: '2%' }}>
           <T table={g("B-2")} onClick={c("B-2")} w={60} h={62} />
         </div>
-
-        {/* ── B-1 (below B-2) ── */}
+        {/* ── B-1 ── */}
         <div className="absolute" style={{ top: '88%', left: '10%' }}>
           <T table={g("B-1")} onClick={c("B-1")} w={50} h={50} />
         </div>
-
-        {/* ── B-6 (bottom center) ── */}
+        {/* ── B-6 ── */}
         <div className="absolute" style={{ top: '82%', left: '38%' }}>
           <T table={g("B-6")} onClick={c("B-6")} w={66} h={62} />
         </div>
-
-        {/* ── A-9 (bottom, near center-right) ── */}
+        {/* ── A-9 ── */}
         <div className="absolute" style={{ top: '84%', left: '60%' }}>
           <T table={g("A-9")} onClick={c("A-9")} w={50} h={50} />
         </div>
-
       </div>
 
       {/* ── Zone Legend ── */}
-      <div className="flex flex-wrap justify-center gap-5 py-4 border-t border-border/30 mt-2">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-primary/40 border border-primary/60" />
-          <span className="text-[9px] tracking-wider uppercase text-primary font-medium">A — Бар</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-blue-400/40 border border-blue-400/60" />
-          <span className="text-[9px] tracking-wider uppercase text-blue-400 font-medium">B — Төв зал</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-emerald-400/40 border border-emerald-400/60" />
-          <span className="text-[9px] tracking-wider uppercase text-emerald-400 font-medium">C — Chill</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-rose-400/40 border border-rose-400/60" />
-          <span className="text-[9px] tracking-wider uppercase text-rose-400 font-medium">D — Үндсэн</span>
-        </div>
+      <div className="flex flex-wrap justify-center gap-6 py-5 border-t border-white/[0.06]">
+        {[
+          { key: "A", label: "Бар", colors: zoneColors.A },
+          { key: "B", label: "Төв зал", colors: zoneColors.B },
+          { key: "C", label: "Chill", colors: zoneColors.C },
+          { key: "D", label: "Үндсэн", colors: zoneColors.D },
+        ].map(({ key, label, colors }) => (
+          <div key={key} className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${colors.bg} border ${colors.border}`} />
+            <span className={`text-[10px] tracking-[0.15em] uppercase font-medium ${colors.text}`}>
+              {key} — {label}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

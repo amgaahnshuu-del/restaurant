@@ -143,16 +143,16 @@ const ReservationSection = () => {
         </motion.div>
 
         {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-6 mb-10">
+        <div className="flex flex-wrap justify-center gap-8 mb-12">
           {[
-            { label: "Сул", className: "bg-secondary border-border" },
-            { label: "Сонгосон", className: "bg-primary/30 border-primary ring-2 ring-primary/40" },
-            { label: "Захиалагдсан", className: "bg-muted/50 border-muted-foreground/20 opacity-50" },
-            { label: "Цонхны талд", className: "bg-secondary border-border border-dashed" },
+            { label: "Сул", className: "bg-white/[0.03] border-white/[0.08]" },
+            { label: "Сонгосон", className: "bg-primary/20 border-primary/50 ring-2 ring-primary/30" },
+            { label: "Захиалагдсан", className: "bg-muted/20 border-muted-foreground/10 opacity-30" },
+            { label: "Цонхны талд", className: "bg-white/[0.03] border-white/[0.08] border-dashed" },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-md border ${item.className}`} />
-              <span className="font-sans text-xs tracking-wider uppercase text-muted-foreground">
+            <div key={item.label} className="flex items-center gap-2.5">
+              <div className={`w-7 h-7 rounded-lg border ${item.className}`} />
+              <span className="font-sans text-[11px] tracking-[0.15em] uppercase text-muted-foreground/70">
                 {item.label}
               </span>
             </div>
@@ -180,14 +180,17 @@ const ReservationSection = () => {
               transition={{ duration: 0.4 }}
               className="overflow-hidden"
             >
-              <div className="border border-primary/30 rounded-sm p-6 md:p-8 bg-card/80 mb-4">
-                <div className="text-center mb-6">
-                  <span className="font-sans text-xs tracking-[0.2em] uppercase text-primary">
-                    {zoneLabels[selectedTable.zone]} — {selectedTable.number}-р ширээ ({selectedTable.capacity})
-                    {selectedTable.isWindow ? " · Цонхны талд" : ""}
-                  </span>
+              <div className="border border-white/[0.08] rounded-xl p-6 md:p-10 bg-gradient-to-br from-card/90 via-card/70 to-card/90 backdrop-blur-sm shadow-2xl shadow-black/20 mb-4">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-primary/10 border border-primary/20">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span className="font-sans text-[11px] tracking-[0.2em] uppercase text-primary font-medium">
+                      {zoneLabels[selectedTable.zone]} — {selectedTable.number}-р ширээ ({selectedTable.capacity})
+                      {selectedTable.isWindow ? " · Цонх" : ""}
+                    </span>
+                  </div>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div className="grid md:grid-cols-2 gap-4">
                     <input
                       type="text"
@@ -195,7 +198,7 @@ const ReservationSection = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       maxLength={100}
-                      className="w-full bg-transparent border border-border px-6 py-4 font-body text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-5 py-4 font-body text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-white/[0.05] focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all duration-300"
                     />
                     <input
                       type="tel"
@@ -203,7 +206,7 @@ const ReservationSection = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       maxLength={20}
-                      className="w-full bg-transparent border border-border px-6 py-4 font-body text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-5 py-4 font-body text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-white/[0.05] focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all duration-300"
                     />
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
@@ -211,16 +214,16 @@ const ReservationSection = () => {
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full bg-transparent border border-border px-6 py-4 font-body text-foreground focus:border-primary focus:outline-none transition-colors"
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-5 py-4 font-body text-foreground focus:border-primary/50 focus:bg-white/[0.05] focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all duration-300"
                     />
                     <select
                       value={guests}
                       onChange={(e) => setGuests(e.target.value)}
-                      className="w-full bg-transparent border border-border px-6 py-4 font-body text-foreground focus:border-primary focus:outline-none transition-colors appearance-none"
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-5 py-4 font-body text-foreground focus:border-primary/50 focus:bg-white/[0.05] focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all duration-300 appearance-none"
                     >
-                      <option value="" className="bg-card">Зочдын тоо</option>
+                      <option value="" className="bg-card text-foreground">Зочдын тоо</option>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                        <option key={n} value={n} className="bg-card">
+                        <option key={n} value={n} className="bg-card text-foreground">
                           {n} хүн
                         </option>
                       ))}
@@ -229,7 +232,7 @@ const ReservationSection = () => {
                   <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
-                    className="w-full bg-gold-gradient px-8 py-4 font-sans text-xs tracking-[0.2em] uppercase text-primary-foreground hover:opacity-90 transition-opacity duration-300 disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 rounded-lg px-8 py-4 font-sans text-[11px] tracking-[0.25em] uppercase text-primary-foreground font-semibold hover:shadow-lg hover:shadow-primary/25 active:scale-[0.99] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? "Илгээж байна..." : "Захиалга баталгаажуулах"}
                   </button>
