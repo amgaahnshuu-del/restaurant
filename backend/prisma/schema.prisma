@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReservationStatus {
+  confirmed
+  cancelled
+}
+
+model Reservation {
+  id              Int               @id @default(autoincrement())
+  tableId         String            @map("table_id") @db.VarChar(20)
+  zone            String            @db.VarChar(10)
+  tableNumber     Int               @map("table_number")
+  customerName    String            @map("customer_name") @db.VarChar(100)
+  phone           String            @db.VarChar(20)
+  reservationDate DateTime          @map("reservation_date") @db.Date
+  reservationTime String            @map("reservation_time") @db.VarChar(8)
+  durationHours   Int               @map("duration_hours") @default(2)
+  guests          String?           @db.VarChar(20)
+  capacity        String?           @db.VarChar(50)
+  status          ReservationStatus @default(confirmed)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@index([reservationDate, status], map: "idx_reservation_date_status")
+  @@index([tableId, reservationDate, status], map: "idx_table_date_status")
+  @@index([phone, status], map: "idx_phone_status")
+  @@map("reservations")
+}

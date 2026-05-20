@@ -60,6 +60,52 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Project structure
+
+The app is now split into two folders:
+
+- `frontend/` - Vite + React UI
+- `backend/` - Express + Prisma + MySQL API
+
+## Environment
+
+Use these examples:
+
+- `frontend/.env.example`
+- `backend/.env.example`
+
+The frontend mainly needs:
+
+```sh
+VITE_API_URL="http://localhost:4000"
+```
+
+The backend mainly needs:
+
+```sh
+PORT="4000"
+FRONTEND_URL="http://localhost:8080"
+DATABASE_URL="mysql://root:password@localhost:3306/gusto_db"
+```
+
+## Database and Prisma
+
+Run these commands after MySQL is running and `DATABASE_URL` is correct:
+
+```sh
+npm run prisma:generate
+npm run prisma:push
+```
+
+## Start frontend and backend
+
+Use two terminals:
+
+```sh
+npm run dev:backend
+npm run dev:frontend
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
