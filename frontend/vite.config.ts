@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  preview: {
+    allowedHosts: ["gilded-plates-showcase-1.onrender.com"],
+  },
   plugins: [react()],
   resolve: {
     alias: {
