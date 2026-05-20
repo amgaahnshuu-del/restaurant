@@ -10,6 +10,7 @@
     "server": "npm run dev:backend",
     "build": "npm --prefix frontend run build",
     "build:dev": "npm --prefix frontend run build:dev",
+    "start": "npm --prefix frontend run preview -- --host 0.0.0.0 --port $PORT",
     "lint": "npm --prefix frontend run lint",
     "preview": "npm --prefix frontend run preview",
     "prisma:generate": "npm --prefix backend run prisma:generate",
