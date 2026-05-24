@@ -1,7 +1,0 @@
-project_id = "qonqzvhniqylthxwqvxs"
-
-[functions.send-reservation]
-verify_jwt = false
-
-[functions.cancel-reservation]
-verify_jwt = false
