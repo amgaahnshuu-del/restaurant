@@ -89,7 +89,7 @@ const HeroSection = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.15 }}
-        className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-6 pb-4 pt-16 lg:px-10"
+        className="relative z-10 mx-auto flex w-full max-w-7xl items-center justify-between px-4 pb-4 pt-16 sm:px-6 lg:px-10"
       >
         <div className="flex items-center gap-3">
           <div className="rounded-full border border-white/70 bg-white/80 px-3 py-1 font-sans text-[10px] uppercase tracking-[0.3em] text-primary/80 shadow-[0_10px_24px_hsl(28_25%_35%/.08)] dark:border-white/10 dark:bg-white/10 dark:shadow-[0_14px_35px_hsl(0_0%_0%/.28)]">
@@ -119,17 +119,17 @@ const HeroSection = () => {
         </div>
       </motion.nav>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(88vh-96px)] max-w-7xl items-center px-6 pb-14 lg:px-10">
+      <div className="relative z-10 mx-auto flex min-h-[calc(88vh-96px)] max-w-7xl items-center px-4 pb-14 sm:px-6 lg:px-10">
         <div className="grid w-full items-end gap-10 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="max-w-3xl">
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="gold-shimmer mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-2 shadow-[0_14px_34px_hsl(28_25%_35%/.08)] backdrop-blur-sm dark:bg-white/10 dark:shadow-[0_14px_35px_hsl(0_0%_0%/.28)]"
+              className="gold-shimmer mb-4 inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-2 text-center shadow-[0_14px_34px_hsl(28_25%_35%/.08)] backdrop-blur-sm dark:bg-white/10 dark:shadow-[0_14px_35px_hsl(0_0%_0%/.28)] sm:justify-start sm:text-left"
             >
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="font-sans text-[11px] uppercase tracking-[0.34em] text-primary/85">
+              <span className="font-sans text-[10px] uppercase tracking-[0.24em] text-primary/85 sm:text-[11px] sm:tracking-[0.34em]">
                 {copy.sparkles}
               </span>
             </motion.div>
@@ -143,11 +143,11 @@ const HeroSection = () => {
               <motion.img
                 src={gustoLogo}
                 alt="Gusto Restaurant"
-                className="mb-6 h-24 w-auto md:h-32 lg:h-40"
+                className="mb-6 h-20 w-auto sm:h-24 md:h-32 lg:h-40"
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               />
-              <h1 className="max-w-3xl text-5xl font-light leading-[0.92] text-foreground md:text-7xl lg:text-[5.75rem]">
+              <h1 className="max-w-3xl text-4xl font-light leading-[0.92] text-foreground sm:text-5xl md:text-7xl lg:text-[5.75rem]">
                 {copy.title1}
                 <span className="block italic text-primary">{copy.title2}</span>
               </h1>
@@ -157,7 +157,7 @@ const HeroSection = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.9 }}
-              className="max-w-xl font-sans text-base leading-8 text-foreground/72 md:text-lg"
+              className="max-w-xl font-sans text-sm leading-7 text-foreground/72 sm:text-base md:text-lg"
             >
               {copy.body}
             </motion.p>
@@ -217,8 +217,8 @@ const HeroSection = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-                {[
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
                 { value: "15+", label: copy.years },
                 { value: "50+", label: copy.dishes },
                 { value: "1k+", label: copy.evenings },
@@ -230,7 +230,7 @@ const HeroSection = () => {
                   className="rounded-[22px] border border-white/70 bg-white/78 px-4 py-5 text-center shadow-[0_18px_45px_hsl(28_25%_35%/.08)] backdrop-blur-sm dark:border-white/10 dark:bg-white/10 dark:shadow-[0_18px_40px_hsl(0_0%_0%/.22)]"
                 >
                   <div className="font-display text-3xl text-primary">{item.value}</div>
-                  <div className="mt-2 font-sans text-[10px] uppercase tracking-[0.18em] text-foreground/55">
+                  <div className="mt-2 font-sans text-[9px] uppercase tracking-[0.14em] text-foreground/55 sm:text-[10px] sm:tracking-[0.18em]">
                     {item.label}
                   </div>
                 </motion.div>

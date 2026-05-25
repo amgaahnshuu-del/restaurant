@@ -12,6 +12,7 @@
     "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "db:start:local": "powershell -ExecutionPolicy Bypass -File scripts/start-local-postgres.ps1",
     "db:seed": "prisma db seed",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts"

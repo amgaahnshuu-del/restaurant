@@ -546,20 +546,20 @@ const Menu = () => {
         transition={{ duration: 0.5 }}
         className="relative z-20 border-b border-border/60 bg-background/82 backdrop-blur-2xl dark:border-white/10"
       >
-        <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="group inline-flex h-10 items-center gap-2 rounded-full border border-border/75 bg-white/65 px-3 font-sans text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-primary/45 hover:text-primary dark:border-white/10 dark:bg-white/[0.05]"
+            className="group order-2 inline-flex h-10 items-center gap-2 rounded-full border border-border/75 bg-white/65 px-3 font-sans text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-primary/45 hover:text-primary dark:border-white/10 dark:bg-white/[0.05] sm:order-1"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{copy.back}</span>
           </Link>
 
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2">
+          <Link to="/" className="order-1 flex w-full justify-center sm:pointer-events-auto sm:absolute sm:left-1/2 sm:order-2 sm:w-auto sm:-translate-x-1/2">
             <img src={gustoLogo} alt="Gusto" className="h-9 w-auto sm:h-10" />
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="order-3 ml-auto flex items-center gap-2 sm:ml-0 sm:gap-3">
             <LanguageToggle />
             <ThemeToggle />
             <Link

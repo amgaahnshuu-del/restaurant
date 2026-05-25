@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { prisma } from "@server/prisma";
+import { getDatabaseUnavailableMessage, isDatabaseUnavailableError } from "@server/prisma-errors";
 import { cancelSchema, getReservationBounds, normalizeReservation } from "@server/reservations";
 
 export async function POST(request: NextRequest) {
@@ -53,6 +54,10 @@ export async function POST(request: NextRequest) {
         { message: "Invalid cancellation payload.", errors: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: getDatabaseUnavailableMessage() }, { status: 503 });
     }
 
     console.error("Failed to cancel reservation:", error);

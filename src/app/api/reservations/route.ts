@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { prisma } from "@server/prisma";
+import { getDatabaseUnavailableMessage, isDatabaseUnavailableError } from "@server/prisma-errors";
 import {
   getReservationBounds,
   listSchema,
@@ -69,6 +70,10 @@ export async function GET(request: NextRequest) {
         { message: "Invalid reservation query.", errors: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: getDatabaseUnavailableMessage() }, { status: 503 });
     }
 
     console.error("Failed to fetch reservations:", error);
@@ -141,6 +146,10 @@ export async function POST(request: NextRequest) {
         { message: "Invalid reservation payload.", errors: error.flatten() },
         { status: 400 },
       );
+    }
+
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json({ message: getDatabaseUnavailableMessage() }, { status: 503 });
     }
 
     console.error("Failed to create reservation:", error);

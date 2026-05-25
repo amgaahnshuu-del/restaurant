@@ -142,7 +142,7 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
         }}
       />
 
-      <div className="relative mx-auto min-w-[760px] md:min-w-[900px]" style={{ aspectRatio: "1 / 1.1", maxHeight: 960 }}>
+      <div className="relative mx-auto w-full min-w-[620px] max-w-[900px]" style={{ aspectRatio: "1 / 1.1", maxHeight: 960 }}>
         <div className="pointer-events-none absolute inset-[12px] rounded-lg border border-border/70 dark:border-white/10" />
 
         <WindowLine style={{ top: 12, left: "2%", width: "30%" }} />
@@ -286,7 +286,7 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-6 border-t border-border/70 py-5 dark:border-white/10">
+      <div className="flex flex-wrap justify-center gap-4 border-t border-border/70 px-4 py-5 text-center dark:border-white/10 sm:gap-6">
         {Object.entries(zoneNames).map(([key, label]) => (
           <div key={key} className="flex items-center gap-2">
             <div className={`h-3 w-3 rounded-full ${zoneColors[key].bg} border ${zoneColors[key].border}`} />

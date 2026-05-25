@@ -13,7 +13,7 @@ const LanguageToggle = () => {
           key={item.key}
           type="button"
           onClick={() => setLanguage(item.key as "en" | "mn")}
-          className={`rounded-full px-3 py-1.5 font-sans text-[10px] uppercase tracking-[0.22em] transition-all duration-300 sm:text-[11px] ${
+          className={`rounded-full px-2.5 py-1.5 font-sans text-[9px] uppercase tracking-[0.16em] transition-all duration-300 sm:px-3 sm:text-[11px] sm:tracking-[0.22em] ${
             language === item.key
               ? "bg-primary text-primary-foreground shadow-[0_10px_20px_hsl(38_56%_46%/.22)]"
               : "text-muted-foreground hover:bg-secondary hover:text-foreground dark:hover:bg-white/10 dark:hover:text-white"

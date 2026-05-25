@@ -151,6 +151,7 @@ const ReservationSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [serviceError, setServiceError] = useState<string | null>(null);
 
   const applyBookedTables = (bookedIds: Set<string>) => {
     setTables((prev) =>
@@ -178,9 +179,15 @@ const ReservationSection = () => {
         durationHours: selectedDuration,
       });
 
+      setServiceError(null);
       applyBookedTables(new Set(data.bookedTableIds));
     } catch (error) {
-      console.error("Failed to load reservations:", error);
+      setServiceError(
+        error instanceof Error
+          ? error.message
+          : "Reservation service is temporarily unavailable. Please try again shortly.",
+      );
+      applyBookedTables(new Set());
     } finally {
       setIsLoading(false);
     }
@@ -222,6 +229,15 @@ const ReservationSection = () => {
   };
 
   const handleSubmit = async () => {
+    if (serviceError) {
+      toast({
+        title: copy.errorTitle,
+        description: serviceError,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!selectedTable) {
       toast({
         title: copy.chooseTitle,
@@ -302,6 +318,15 @@ const ReservationSection = () => {
   };
 
   const handleCancelReservation = async () => {
+    if (serviceError) {
+      toast({
+        title: copy.cancelErrorTitle,
+        description: serviceError,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!cancelPhone.trim()) {
       toast({
         title: copy.cancelMissingTitle,
@@ -389,6 +414,15 @@ const ReservationSection = () => {
             </div>
           ))}
         </div>
+
+        {serviceError && (
+          <div className="mb-6 rounded-[24px] border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-center shadow-[0_16px_40px_hsl(40_60%_50%/.08)] dark:border-amber-400/20 dark:bg-amber-400/10">
+            <p className="font-sans text-[11px] uppercase tracking-[0.22em] text-amber-800 dark:text-amber-200">
+              Reservation service offline
+            </p>
+            <p className="mt-2 font-body text-sm leading-7 text-foreground/80">{serviceError}</p>
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -501,7 +535,7 @@ const ReservationSection = () => {
 
                   <button
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !!serviceError}
                     className="w-full rounded-lg bg-gradient-to-r from-primary via-primary/90 to-primary/80 px-8 py-4 font-sans text-[11px] font-semibold uppercase tracking-[0.25em] text-primary-foreground transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {isSubmitting ? copy.submitting : copy.confirm}
@@ -538,7 +572,7 @@ const ReservationSection = () => {
 
           <button
             onClick={handleCancelReservation}
-            disabled={isCancelling}
+            disabled={isCancelling || !!serviceError}
             className="mt-5 w-full rounded-lg border border-primary/25 bg-primary/10 px-8 py-4 font-sans text-[11px] font-semibold uppercase tracking-[0.25em] text-primary transition-all duration-300 hover:bg-primary hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isCancelling ? copy.cancelling : copy.cancelButton}
