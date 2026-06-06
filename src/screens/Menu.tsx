@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   CalendarCheck,
+  LockKeyhole,
   Martini,
   Salad,
   Soup,
   Sparkles,
+  UserRound,
   Utensils,
   Wine,
 } from "lucide-react";
@@ -57,8 +59,6 @@ import menuWarmPoachedEgg from "@/assets/menu-warm-appetizer-poached-egg.png";
 import menuWarmRoastedBeef from "@/assets/menu-warm-appetizer-roasted-beef.png";
 import wine1 from "@/assets/wine-1.jpg";
 import wine2 from "@/assets/wine-2.jpg";
-import LanguageToggle from "@/components/LanguageToggle";
-import ThemeToggle from "@/components/ThemeToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type MenuMode = "food" | "drink";
@@ -436,6 +436,8 @@ const Menu = () => {
   const { language } = useLanguage();
   const [mode, setMode] = useState<MenuMode>("food");
   const [activeCategory, setActiveCategory] = useState<CategoryId>("starter");
+  const accountLabel = language === "mn" ? "Миний бүртгэл" : "My Account";
+  const adminLabel = language === "mn" ? "Админ нэвтрэх" : "Admin Login";
 
   const copy = {
     en: {
@@ -481,9 +483,7 @@ const Menu = () => {
       back: "Нүүр",
       reserve: "Захиалга",
       kicker: "Gusto цэс",
-      title: "PDF биш, ангиллаар нь тухтай үзээрэй.",
-      body: "Рестораны цэсний зургуудыг ашиглаад хоол, уух зүйлсийг ангиллаар нь хурдан харах web menu болголоо. Хэрэгтэй үед эх PDF-ээ нээж болно.",
-      eyebrow: "Улаанбаатар дахь итали ресторан",
+      title: "Ангиллаар нь тухтай үзээрэй.",
       modes: {
         food: "Хоол",
         drink: "Уух зүйлс",
@@ -512,7 +512,6 @@ const Menu = () => {
         wine: "Дарс болон pairing",
         cocktail: "Коктейль, ундаа",
       },
-      showing: "Харагдаж байна",
     },
   }[language];
 
@@ -536,7 +535,7 @@ const Menu = () => {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground py-6 sm:py-8">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,hsl(40_34%_96%),hsl(34_30%_91%)_48%,hsl(28_26%_88%))] dark:bg-[linear-gradient(120deg,hsl(20_16%_8%),hsl(22_14%_10%)_52%,hsl(18_18%_6%))]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,hsl(38_56%_46%/.08)_1px,transparent_1px),linear-gradient(180deg,hsl(38_56%_46%/.06)_1px,transparent_1px)] bg-[size:56px_56px] opacity-35 dark:opacity-20" />
 
@@ -544,36 +543,41 @@ const Menu = () => {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-20 border-b border-border/60 bg-background/82 backdrop-blur-2xl dark:border-white/10"
+        className="relative z-20 border-b border-border/60 bg-background/82 backdrop-blur-2xl dark:border-white/10 mb-4 sm:mb-6"
       >
-        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:flex-nowrap sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-2 sm:py-3 sm:flex-nowrap sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="group order-2 inline-flex h-10 items-center gap-2 rounded-full border border-border/75 bg-white/65 px-3 font-sans text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-primary/45 hover:text-primary dark:border-white/10 dark:bg-white/[0.05] sm:order-1"
+            className="group order-2 inline-flex h-9 sm:h-10 items-center gap-2 rounded-full border border-border/75 bg-white/65 px-3 font-sans text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-all hover:border-primary/45 hover:text-primary dark:border-white/10 dark:bg-white/[0.05] sm:order-1"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">{copy.back}</span>
           </Link>
 
           <Link to="/" className="order-1 flex w-full justify-center sm:pointer-events-auto sm:absolute sm:left-1/2 sm:order-2 sm:w-auto sm:-translate-x-1/2">
-            <img src={gustoLogo} alt="Gusto" className="h-9 w-auto sm:h-10" />
+            <img src={gustoLogo} alt="Gusto" className="h-8 w-auto sm:h-9 md:h-10" />
           </Link>
 
           <div className="order-3 ml-auto flex items-center gap-2 sm:ml-0 sm:gap-3">
-            <LanguageToggle />
-            <ThemeToggle />
-            <Link
-              to="/#reservation"
-              className="hidden h-10 items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 font-sans text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground sm:inline-flex"
+            <a
+              href="/account"
+              className="inline-flex h-9 sm:h-10 items-center gap-2 rounded-full border border-border/60 bg-white/70 px-3 font-sans text-[10px] uppercase tracking-[0.16em] text-foreground transition-colors hover:border-primary/25 hover:bg-white hover:text-primary dark:border-white/10 dark:bg-white/[0.05] sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
+            >
+              <UserRound className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{accountLabel}</span>
+            </a>
+            <a
+              href="/reservation"
+              className="hidden h-9 sm:h-10 items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 sm:px-4 font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.18em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground sm:inline-flex"
             >
               <CalendarCheck className="h-3.5 w-3.5" />
               {copy.reserve}
-            </Link>
+            </a>
           </div>
         </div>
       </motion.header>
 
-      <section id="full-menu" className="relative z-10 px-4 py-3 sm:px-6 lg:px-8">
+      <section id="full-menu" className="relative z-10 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1450px]">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
@@ -589,13 +593,13 @@ const Menu = () => {
                 <p className="font-sans text-[9px] uppercase tracking-[0.28em] text-primary/80">
                   {copy.kicker}
                 </p>
-                <p className="mt-1.5 font-sans text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                <p className="mt-1 font-sans text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                   {copy.eyebrow}
                 </p>
-                <h1 className="mt-1.5 max-w-3xl text-2xl font-light leading-[1.08] text-foreground sm:text-3xl lg:text-4xl">
+                <h1 className="mt-1 max-w-3xl text-xl font-light leading-[1.08] text-foreground sm:text-2xl lg:text-3xl">
                   {copy.title}
                 </h1>
-                <p className="mt-2 max-w-2xl font-sans text-xs leading-5 text-muted-foreground">
+                <p className="mt-1.5 max-w-2xl font-sans text-xs leading-5 text-muted-foreground">
                   {copy.body}
                 </p>
               </div>
@@ -607,7 +611,7 @@ const Menu = () => {
                       key={item}
                       type="button"
                       onClick={() => setActiveMode(item)}
-                      className={`relative flex h-10 items-center justify-center gap-2 rounded-full px-4 font-sans text-[10px] uppercase tracking-[0.18em] transition-all ${
+                      className={`relative flex h-9 sm:h-10 items-center justify-center gap-2 rounded-full px-3 sm:px-4 font-sans text-[9px] sm:text-[10px] uppercase tracking-[0.18em] transition-all ${
                         mode === item
                           ? "bg-gold-gradient text-primary-foreground shadow-[0_12px_28px_hsl(38_56%_46%/.28)]"
                           : "text-muted-foreground hover:bg-white/55 hover:text-foreground dark:hover:bg-white/[0.06]"
@@ -622,7 +626,7 @@ const Menu = () => {
             </div>
           </motion.div>
 
-          <div className="mt-5 flex gap-2 overflow-x-auto rounded-[22px] bg-[linear-gradient(180deg,hsl(22_20%_12%/.06),hsl(34_26%_22%/.04))] p-1.5 dark:bg-[linear-gradient(180deg,hsl(20_16%_7%/.92),hsl(24_18%_9%/.82))]">
+          <div className="mt-4 flex gap-2 overflow-x-auto rounded-[22px] bg-[linear-gradient(180deg,hsl(22_20%_12%/.06),hsl(34_26%_22%/.04))] p-1.5 dark:bg-[linear-gradient(180deg,hsl(20_16%_7%/.92),hsl(24_18%_9%/.82))]">
             {visibleCategories.map((category) => {
               const Icon = category.icon;
               const isActive = selectedCategory.id === category.id;
@@ -632,7 +636,7 @@ const Menu = () => {
                   key={category.id}
                   type="button"
                   onClick={() => setActiveCategory(category.id)}
-                  className={`flex h-11 min-w-fit items-center gap-2 rounded-full border px-5 font-sans text-[11px] uppercase tracking-[0.18em] transition-all ${
+                  className={`flex h-10 min-w-fit items-center gap-2 rounded-full border px-4 font-sans text-[10px] uppercase tracking-[0.18em] transition-all ${
                     isActive
                       ? "border-primary/70 bg-gold-gradient text-primary-foreground shadow-[0_14px_34px_hsl(38_56%_46%/.28)]"
                       : "border-border/70 bg-white/58 text-muted-foreground shadow-[inset_0_1px_0_hsl(0_0%_100%/.38)] hover:border-primary/35 hover:bg-white/82 hover:text-primary dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[inset_0_1px_0_hsl(0_0%_100%/.06)] dark:hover:bg-white/[0.08]"
@@ -652,26 +656,26 @@ const Menu = () => {
             transition={{ duration: 0.35 }}
             className="mt-4 overflow-hidden rounded-[28px] border border-white/75 bg-white/68 shadow-[0_34px_100px_hsl(28_25%_35%/.15)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.045] dark:shadow-[0_34px_100px_hsl(0_0%_0%/.4)]"
           >
-            <div className="flex flex-col gap-4 border-b border-white/70 bg-white/50 px-5 py-5 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between lg:px-7">
+            <div className="flex flex-col gap-3 border-b border-white/70 bg-white/50 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between lg:px-6">
               <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/12 text-primary">
-                  <ActiveIcon className="h-5 w-5" />
+                <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/12 text-primary">
+                  <ActiveIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
                 <div>
-                  <p className="font-sans text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
+                  <p className="font-sans text-[9px] uppercase tracking-[0.26em] text-muted-foreground">
                     {copy.showing}
                   </p>
-                  <h2 className="mt-1 font-display text-3xl font-light text-foreground">
+                  <h2 className="mt-0.5 font-display text-2xl sm:text-3xl font-light text-foreground">
                     {getCategoryLabel(selectedCategory.id)}
                   </h2>
                 </div>
               </div>
-              <p className="max-w-md font-sans text-sm leading-6 text-muted-foreground">
+              <p className="max-w-md font-sans text-xs sm:text-sm leading-6 text-muted-foreground">
                 {getCategoryNote(selectedCategory.id)}
               </p>
             </div>
 
-            <div className="grid gap-4 bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(34_28%_91%/.92),hsl(31_24%_86%/.92))] p-4 dark:bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(20_14%_8%),hsl(18_16%_4%))] sm:grid-cols-2 sm:p-5 lg:grid-cols-3 lg:p-7">
+            <div className="grid gap-4 bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(34_28%_91%/.92),hsl(31_24%_86%/.92))] p-4 dark:bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(20_14%_8%),hsl(18_16%_4%))] sm:grid-cols-2 sm:p-5 lg:grid-cols-3 lg:p-6">
               {selectedCategory.items.map((item, index) => (
                 <motion.article
                   key={item.name}
@@ -680,7 +684,7 @@ const Menu = () => {
                   transition={{ duration: 0.35, delay: index * 0.05 }}
                   className="group overflow-hidden rounded-[22px] border border-white/80 bg-white shadow-[0_22px_60px_hsl(28_25%_35%/.12)] transition-transform duration-300 hover:-translate-y-1 dark:border-white/10 dark:bg-white/[0.06]"
                 >
-                    <div className="relative aspect-[9/16] overflow-hidden bg-muted">
+                  <div className="relative aspect-[9/16] overflow-hidden bg-muted">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -688,13 +692,13 @@ const Menu = () => {
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-                    <span className="absolute left-4 top-4 rounded-full border border-white/45 bg-white/82 px-3 py-1 font-sans text-[10px] uppercase tracking-[0.16em] text-primary backdrop-blur dark:border-white/10 dark:bg-black/40">
+                    <span className="absolute left-3 top-3 rounded-full border border-white/45 bg-white/82 px-2 py-0.5 font-sans text-[9px] uppercase tracking-[0.16em] text-primary backdrop-blur dark:border-white/10 dark:bg-black/40">
                       {item.tag}
                     </span>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-2xl font-light text-foreground">{item.name}</h3>
-                    <p className="mt-3 font-sans text-sm leading-6 text-muted-foreground">{item.description}</p>
+                  <div className="p-4 sm:p-5">
+                    <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">{item.name}</h3>
+                    <p className="mt-2 font-sans text-xs sm:text-sm leading-6 text-muted-foreground">{item.description}</p>
                   </div>
                 </motion.article>
               ))}

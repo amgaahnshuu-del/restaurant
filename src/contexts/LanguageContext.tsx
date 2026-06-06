@@ -1,6 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+"use client";
 
-export type Language = "en" | "mn";
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { LANGUAGE_COOKIE_NAME, LANGUAGE_STORAGE_KEY, type Language, readBrowserLanguage } from "@/lib/language";
 
 type LanguageContextValue = {
   language: Language;
@@ -10,29 +11,75 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
-const STORAGE_KEY = "gusto-language";
+const STORAGE_EVENT = "gusto-language-storage";
 
-export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>("en");
+const readLanguage = (): Language => {
+  return readBrowserLanguage();
+};
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "en" || stored === "mn") {
-      setLanguage(stored);
+const subscribe = (callback: () => void) => {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === LANGUAGE_STORAGE_KEY) {
+      callback();
     }
+  };
+
+  const handleCustomEvent = () => {
+    callback();
+  };
+
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(STORAGE_EVENT, handleCustomEvent);
+
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(STORAGE_EVENT, handleCustomEvent);
+  };
+};
+
+const writeLanguage = (language: Language) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  document.cookie = `${LANGUAGE_COOKIE_NAME}=${language}; path=/; max-age=31536000; samesite=lax`;
+  window.dispatchEvent(new Event(STORAGE_EVENT));
+};
+
+export const LanguageProvider = ({
+  children,
+  initialLanguage = "en",
+}: {
+  children: ReactNode;
+  initialLanguage?: Language;
+}) => {
+  const getServerSnapshot = useCallback(() => initialLanguage, [initialLanguage]);
+  const language = useSyncExternalStore(subscribe, readLanguage, getServerSnapshot);
+
+  const setLanguage = useCallback((nextLanguage: Language) => {
+    if (readLanguage() === nextLanguage) {
+      return;
+    }
+
+    writeLanguage(nextLanguage);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, language);
+  const toggleLanguage = useCallback(() => {
+    writeLanguage(language === "en" ? "mn" : "en");
   }, [language]);
 
-  const value = useMemo(
+  const value = useMemo<LanguageContextValue>(
     () => ({
       language,
       setLanguage,
-      toggleLanguage: () => setLanguage((current) => (current === "en" ? "mn" : "en")),
+      toggleLanguage,
     }),
-    [language],
+    [language, setLanguage, toggleLanguage],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;

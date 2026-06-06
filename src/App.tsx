@@ -11,7 +11,6 @@ import Branch1 from "./screens/Branch1";
 import Branch2 from "./screens/Branch2";
 import Menu from "./screens/Menu";
 import NotFound from "./screens/NotFound";
-import { LanguageProvider } from "./contexts/LanguageContext";
 import ThemeProvider from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
@@ -28,7 +27,7 @@ const AnimatedRoutes = () => {
         exit={{ opacity: 0, y: -18, filter: "blur(8px)" }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Routes location={location}>
+          <Routes location={location}>
           <Route path="/" element={<Index />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/salbar-1" element={<Branch1 />} />
@@ -42,16 +41,14 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <LanguageProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
+    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

@@ -1,75 +1,134 @@
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { AUTH_COOKIE_NAME, resolveAuthUser } from "@server/auth";
 import { prisma } from "@server/prisma";
 import { getDatabaseUnavailableMessage, isDatabaseUnavailableError } from "@server/prisma-errors";
 import {
-  getReservationBounds,
-  listSchema,
+  combineDateAndTime,
+  getDayBounds,
+  isActiveReservationStatus,
   normalizeReservation,
-  overlapsReservation,
-  reservationHours,
-  reservationSchema,
-  toDateOnly,
+  parseReservationDateTime,
+  reservationCreateSchema,
+  reservationListQuerySchema,
+  reservationOverlaps,
 } from "@server/reservations";
+
+const getCurrentUser = async (request: NextRequest) => resolveAuthUser(request.cookies.get(AUTH_COOKIE_NAME)?.value);
+
+const buildReservationFilters = (query: {
+  date?: string;
+  search?: string;
+  status?: "pending" | "confirmed" | "cancelled" | "completed";
+  source?: "website" | "walk_in" | "phone";
+  tableId?: number;
+}) => {
+  const where: Prisma.ReservationWhereInput = {};
+
+  if (query.date) {
+    const { start, end } = getDayBounds(query.date);
+    where.reservationDate = {
+      gte: start,
+      lt: end,
+    };
+  }
+
+  if (query.status) {
+    where.status = query.status;
+  }
+
+  if (query.source) {
+    where.source = query.source;
+  }
+
+  if (query.tableId) {
+    where.tableId = query.tableId;
+  }
+
+  if (query.search) {
+    const numericSearch = Number(query.search);
+
+    where.OR = [
+      { customerName: { contains: query.search } },
+      { phoneNumber: { contains: query.search } },
+      { note: { contains: query.search } },
+      ...(Number.isInteger(numericSearch)
+        ? [
+            { id: numericSearch },
+            { table: { tableNumber: numericSearch } },
+          ]
+        : []),
+    ];
+  }
+
+  return where;
+};
+
+const getRequestedSlot = (value: string) => {
+  try {
+    return parseReservationDateTime(value);
+  } catch {
+    return null;
+  }
+};
+
+const findConflictingReservation = async (tableId: number, reservationDate: Date, excludeId?: number) => {
+  const conflictingReservations = await prisma.reservation.findMany({
+    where: {
+      tableId,
+      status: {
+        in: ["pending", "confirmed"],
+      },
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+    select: {
+      id: true,
+      reservationDate: true,
+    },
+  });
+
+  return conflictingReservations.find((reservation) => reservationOverlaps(reservation.reservationDate, reservationDate));
+};
 
 export async function GET(request: NextRequest) {
   try {
-    const { date, time, durationHours } = listSchema.parse(Object.fromEntries(request.nextUrl.searchParams.entries()));
+    const user = await getCurrentUser(request);
 
-    if (time && !reservationHours.has(time)) {
-      return NextResponse.json({ message: "Invalid reservation hour." }, { status: 400 });
+    if (!user || user.role !== "admin") {
+      return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
     }
 
-    const reservations = await prisma.reservation.findMany({
-      where: {
-        reservationDate: toDateOnly(date),
-        status: "confirmed",
-      },
-      orderBy: [{ reservationTime: "asc" }, { createdAt: "desc" }],
-    });
+    const query = reservationListQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams.entries()));
+    const where = buildReservationFilters(query);
+    const skip = (query.page - 1) * query.limit;
 
-    const now = new Date();
-    const normalizedReservations = reservations
-      .map(normalizeReservation)
-      .filter((reservation) => {
-        const { end } = getReservationBounds(
-          reservation.reservation_date,
-          reservation.reservation_time,
-          reservation.duration_hours,
-        );
-
-        return end > now;
-      });
-
-    const bookedTableIds = !time
-      ? [...new Set(normalizedReservations.map((reservation) => reservation.table_id))]
-      : [
-          ...new Set(
-            normalizedReservations
-              .filter((reservation) =>
-                overlapsReservation(
-                  reservation.reservation_date,
-                  reservation.reservation_time,
-                  reservation.duration_hours,
-                  date,
-                  `${time.padStart(2, "0")}:00:00`,
-                  durationHours ?? 2,
-                ),
-              )
-              .map((reservation) => reservation.table_id),
-          ),
-        ];
+    const [total, reservations] = await Promise.all([
+      prisma.reservation.count({ where }),
+      prisma.reservation.findMany({
+        where,
+        include: {
+          table: true,
+          user: true,
+        },
+        orderBy: [{ reservationDate: "desc" }, { createdAt: "desc" }],
+        skip,
+        take: query.limit,
+      }),
+    ]);
 
     return NextResponse.json({
-      reservations: normalizedReservations,
-      bookedTableIds,
+      reservations: reservations.map((reservation) => normalizeReservation(reservation)),
+      meta: {
+        page: query.page,
+        limit: query.limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / query.limit)),
+      },
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json(
-        { message: "Invalid reservation query.", errors: error.flatten() },
-        { status: 400 },
-      );
+      return NextResponse.json({ message: "Invalid reservation query.", errors: error.flatten() }, { status: 400 });
     }
 
     if (isDatabaseUnavailableError(error)) {
@@ -83,35 +142,48 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = reservationSchema.parse(await request.json());
+    const currentUser = await getCurrentUser(request);
+    const payload = reservationCreateSchema.parse(await request.json());
+    const requestedDate = getRequestedSlot(payload.reservationDate);
 
-    const existingReservations = await prisma.reservation.findMany({
+    if (!requestedDate) {
+      return NextResponse.json({ message: "Invalid reservation date." }, { status: 400 });
+    }
+
+    const table = await prisma.table.findUnique({
       where: {
-        tableId: payload.table_id,
-        reservationDate: toDateOnly(payload.reservation_date),
-        status: "confirmed",
+        id: payload.tableId,
       },
-      orderBy: { createdAt: "desc" },
     });
 
-    const conflictingReservation = existingReservations
-      .map(normalizeReservation)
-      .find((reservation) =>
-        overlapsReservation(
-          reservation.reservation_date,
-          reservation.reservation_time,
-          reservation.duration_hours,
-          payload.reservation_date,
-          payload.reservation_time,
-          payload.duration_hours,
-        ),
-      );
+    if (!table) {
+      return NextResponse.json({ message: "Table not found." }, { status: 404 });
+    }
+
+    const source = payload.source ?? (currentUser?.role === "admin" ? "walk_in" : "website");
+    const status =
+      payload.status ??
+      (source === "website" ? "pending" : "confirmed");
+
+    if (!currentUser && source !== "website") {
+      return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    }
+
+    if (!currentUser && status !== "pending") {
+      return NextResponse.json({ message: "Website reservations must start as pending." }, { status: 400 });
+    }
+
+    if (currentUser?.role !== "admin" && source !== "website") {
+      return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+    }
+
+    const conflictingReservation = await findConflictingReservation(payload.tableId, requestedDate);
 
     if (conflictingReservation) {
       return NextResponse.json(
         {
-          message: `Table ${payload.table_id} is already booked for that time.`,
-          reservation: conflictingReservation,
+          message: `Table ${table.tableNumber} is already booked for that time.`,
+          reservationId: conflictingReservation.id,
         },
         { status: 409 },
       );
@@ -119,17 +191,19 @@ export async function POST(request: NextRequest) {
 
     const createdReservation = await prisma.reservation.create({
       data: {
-        tableId: payload.table_id,
-        zone: payload.zone,
-        tableNumber: payload.table_number,
-        customerName: payload.customer_name.trim(),
-        phone: payload.phone.trim(),
-        reservationDate: toDateOnly(payload.reservation_date),
-        reservationTime: payload.reservation_time,
-        durationHours: payload.duration_hours,
-        guests: payload.guests || null,
-        capacity: payload.capacity || null,
-        status: "confirmed",
+        customerName: payload.customerName.trim(),
+        phoneNumber: payload.phoneNumber.trim(),
+        reservationDate: requestedDate,
+        guestCount: payload.guestCount,
+        note: payload.note?.trim() || null,
+        tableId: payload.tableId,
+        source,
+        status,
+        userId: currentUser?.role === "customer" ? currentUser.id : null,
+      },
+      include: {
+        table: true,
+        user: true,
       },
     });
 
@@ -142,10 +216,17 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json(
-        { message: "Invalid reservation payload.", errors: error.flatten() },
-        { status: 400 },
-      );
+      return NextResponse.json({ message: "Invalid reservation payload.", errors: error.flatten() }, { status: 400 });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return NextResponse.json({ message: "That reservation already exists." }, { status: 409 });
+      }
+    }
+
+    if (error instanceof Error && error.message === "Invalid reservation date.") {
+      return NextResponse.json({ message: "Invalid reservation date." }, { status: 400 });
     }
 
     if (isDatabaseUnavailableError(error)) {

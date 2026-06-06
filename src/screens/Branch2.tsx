@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import BranchSwitcher from "@/components/BranchSwitcher";
 import FooterSection from "@/components/FooterSection";
 import gustoLogo from "@/assets/gusto-logo.png";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,7 +20,6 @@ const Branch2 = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <BranchSwitcher />
       <section className="relative flex h-screen w-full flex-col items-center justify-center overflow-hidden px-4 text-center">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
 

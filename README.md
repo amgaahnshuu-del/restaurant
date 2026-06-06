@@ -29,26 +29,29 @@ Create `.env` from `.env.example`.
 
 ```env
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
-DATABASE_URL="postgresql://postgres:password@HOST:PORT/gusto_db?schema=public"
+DATABASE_URL="postgresql://postgres:password@HOST:PORT/gusto_db"
 JWT_SECRET="replace-with-a-long-random-secret"
 ADMIN_EMAIL="admin@gusto.local"
 ADMIN_PASSWORD="ChangeMe123!"
+CUSTOMER_EMAIL="guest@gusto.local"
+CUSTOMER_PASSWORD="GuestPass123!"
+CUSTOMER_NAME="Guest User"
+CUSTOMER_PHONE="+976 99112233"
 ```
 
 ## Setup
 
 ```sh
-npm run db:start:local
 npm install
 npm run prisma:generate
-npm run prisma:push
+npm run prisma:migrate
 npm run db:seed
 npm run dev
 ```
 
 The app will run at `http://localhost:3000`.
 
-`npm run db:start:local` is a Windows helper that starts the bundled `.postgres-dev` cluster using the port from your local `.env`.
+Make sure your PostgreSQL server is running and `DATABASE_URL` points to it before starting the app.
 
 ## Available routes
 
@@ -56,10 +59,15 @@ The app will run at `http://localhost:3000`.
 - `/menu`
 - `/salbar-1`
 - `/salbar-2`
+- `/account`
+- `/account/login`
+- `/account/register`
+- `/login`
 - `/api/health`
 - `/api/reservations`
 - `/api/reservations/cancel`
 - `/api/auth/login`
+- `/api/auth/register`
 - `/api/auth/logout`
 - `/api/auth/me`
 - `/api/admin/reservations`
@@ -68,4 +76,5 @@ The app will run at `http://localhost:3000`.
 
 - The visual UI was intentionally preserved.
 - Reservation requests now go through Next.js API routes backed by Prisma.
-- Admin auth is available through JWT-based API endpoints even though no new admin UI was introduced.
+- Admin and customer auth both use JWT-based API endpoints with HTTP-only cookies.
+- The seed script creates both an admin account and a customer account for local development.

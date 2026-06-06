@@ -1,4 +1,8 @@
+"use client";
+
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { formatCapacity } from "@/lib/language";
 
 type TableStatus = "available" | "booked" | "selected";
 
@@ -24,27 +28,26 @@ const zoneColors: Record<string, { bg: string; border: string; ring: string; tex
   D: { bg: "bg-rose-500/12", border: "border-rose-500/40", ring: "ring-rose-500/25", text: "text-rose-700", glow: "shadow-rose-500/20" },
 };
 
-const zoneNames: Record<string, string> = {
-  A: "Window row",
-  B: "Central hall",
-  C: "Lounge",
-  D: "Main dining",
-};
-
 const T = ({
   table,
   onClick,
   w = 52,
   h = 52,
+  language,
 }: {
   table: TableInfo;
   onClick: () => void;
   w?: number;
   h?: number;
+  language: "en" | "mn";
 }) => {
   const booked = table.status === "booked";
   const selected = table.status === "selected";
   const z = zoneColors[table.zone];
+  const copy = {
+    en: { window: "window", vip: "VIP" },
+    mn: { window: "цонх", vip: "VIP" },
+  }[language];
 
   return (
     <motion.button
@@ -52,7 +55,7 @@ const T = ({
       whileTap={!booked ? { scale: 0.95 } : undefined}
       onClick={onClick}
       disabled={booked}
-      title={`${table.id} - ${table.capacity}${table.isWindow ? " (window)" : ""}${table.isVip ? " (VIP)" : ""}`}
+      title={`${table.id} - ${formatCapacity(table.capacity, language)}${table.isWindow ? ` (${copy.window})` : ""}${table.isVip ? ` (${copy.vip})` : ""}`}
       style={{ width: w, height: h }}
       className={`
         relative flex shrink-0 flex-col items-center justify-center rounded-lg font-sans backdrop-blur-sm transition-all duration-300
@@ -73,18 +76,18 @@ const T = ({
           booked ? "text-muted-foreground/30" : selected ? z.text : "text-foreground/78"
         }`}
       >
-        {table.id}
-      </span>
-      <span
-        className={`mt-1 text-[7px] leading-none md:text-[8px] ${
+          {table.id}
+        </span>
+        <span
+          className={`mt-1 text-[7px] leading-none md:text-[8px] ${
           booked ? "text-muted-foreground/20" : selected ? "text-foreground/60" : "text-muted-foreground/48"
         }`}
       >
-        {table.capacity}
+        {formatCapacity(table.capacity, language)}
       </span>
       {table.isVip && !booked && !selected && (
         <span className="absolute -right-1.5 -top-1.5 rounded-full bg-gradient-to-r from-primary to-primary/80 px-1.5 py-0.5 text-[6px] font-bold leading-none tracking-wider text-primary-foreground">
-          VIP
+          {copy.vip}
         </span>
       )}
       {booked && (
@@ -129,6 +132,38 @@ const WindowLine = ({ style, vertical = false }: { style: React.CSSProperties; v
 );
 
 const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
+  const { language } = useLanguage();
+  const copy = {
+    en: {
+      zoneNames: {
+        A: "Window row",
+        B: "Central hall",
+        C: "Lounge",
+        D: "Main dining",
+      },
+      stage: "Stage",
+      stairs: "Stairs",
+      wc: "WC",
+      lift: "Lift",
+      bar: "Bar",
+      vipZone: "VIP",
+    },
+    mn: {
+      zoneNames: {
+        A: "Цонхны эгнээ",
+        B: "Төв танхим",
+        C: "Лоунж",
+        D: "Үндсэн танхим",
+      },
+      stage: "Тайз",
+      stairs: "Шат",
+      wc: "Жорлон",
+      lift: "Лифт",
+      bar: "Бар",
+      vipZone: "VIP",
+    },
+  }[language];
+
   const g = (id: string) => tables.find((tb) => tb.id === id)!;
   const c = (id: string) => () => onTableClick(id);
 
@@ -161,133 +196,133 @@ const FloorPlan = ({ tables, onTableClick }: FloorPlanProps) => {
         </div>
 
         <div className="absolute" style={{ top: "3%", left: "2%" }}>
-          <T table={g("C-3")} onClick={c("C-3")} w={48} h={56} />
+          <T table={g("C-3")} onClick={c("C-3")} w={48} h={56} language={language} />
         </div>
         <div className="absolute" style={{ top: "2.5%", left: "11%" }}>
-          <T table={g("C-4")} onClick={c("C-4")} w={66} h={62} />
+          <T table={g("C-4")} onClick={c("C-4")} w={66} h={62} language={language} />
         </div>
         <div className="absolute" style={{ top: "2.5%", left: "33%" }}>
-          <T table={g("D-7")} onClick={c("D-7")} w={70} h={66} />
+          <T table={g("D-7")} onClick={c("D-7")} w={70} h={66} language={language} />
         </div>
         <div className="absolute" style={{ top: "2.5%", left: "48%" }}>
-          <T table={g("D-8")} onClick={c("D-8")} w={70} h={66} />
+          <T table={g("D-8")} onClick={c("D-8")} w={70} h={66} language={language} />
         </div>
         <div className="absolute" style={{ top: "2%", left: "72%" }}>
-          <Box label="Stage" w={140} h={72} />
+          <Box label={copy.stage} w={140} h={72} />
         </div>
 
         <div className="absolute" style={{ top: "14%", left: "4%" }}>
-          <T table={g("C-2")} onClick={c("C-2")} w={54} h={54} />
+          <T table={g("C-2")} onClick={c("C-2")} w={54} h={54} language={language} />
         </div>
         <div className="absolute" style={{ top: "14%", left: "26%" }}>
-          <T table={g("D-6")} onClick={c("D-6")} w={58} h={58} />
+          <T table={g("D-6")} onClick={c("D-6")} w={58} h={58} language={language} />
         </div>
         <div className="absolute" style={{ top: "14%", left: "35%" }}>
-          <T table={g("D-5")} onClick={c("D-5")} w={58} h={58} />
+          <T table={g("D-5")} onClick={c("D-5")} w={58} h={58} language={language} />
         </div>
         <div className="absolute" style={{ top: "14%", left: "44%" }}>
-          <T table={g("D-4")} onClick={c("D-4")} w={58} h={58} />
+          <T table={g("D-4")} onClick={c("D-4")} w={58} h={58} language={language} />
         </div>
         <div className="absolute" style={{ top: "14%", left: "53%" }}>
-          <T table={g("D-3")} onClick={c("D-3")} w={58} h={58} />
+          <T table={g("D-3")} onClick={c("D-3")} w={58} h={58} language={language} />
         </div>
         <div className="absolute" style={{ top: "14%", left: "62%" }}>
-          <T table={g("D-2")} onClick={c("D-2")} w={58} h={58} />
+          <T table={g("D-2")} onClick={c("D-2")} w={58} h={58} language={language} />
         </div>
 
         <div className="absolute" style={{ top: "29%", left: "9%" }}>
-          <T table={g("C-1")} onClick={c("C-1")} w={52} h={52} />
+          <T table={g("C-1")} onClick={c("C-1")} w={52} h={52} language={language} />
         </div>
         <div className="absolute" style={{ top: "34%", left: "1%" }}>
-          <T table={g("VIP-2")} onClick={c("VIP-2")} w={80} h={52} />
+          <T table={g("VIP-2")} onClick={c("VIP-2")} w={80} h={52} language={language} />
         </div>
         <div className="absolute" style={{ top: "29%", left: "22%" }}>
-          <Box label="Stairs" w={140} h={38} />
+          <Box label={copy.stairs} w={140} h={38} />
         </div>
         <div className="absolute" style={{ top: "28%", left: "50%" }}>
-          <T table={g("D-1")} onClick={c("D-1")} w={72} h={68} />
+          <T table={g("D-1")} onClick={c("D-1")} w={72} h={68} language={language} />
         </div>
         <div className="absolute" style={{ top: "27%", left: "80%" }}>
-          <T table={g("D-9")} onClick={c("D-9")} w={48} h={48} />
+          <T table={g("D-9")} onClick={c("D-9")} w={48} h={48} language={language} />
         </div>
         <div className="absolute" style={{ top: "34%", left: "80%" }}>
-          <T table={g("D-10")} onClick={c("D-10")} w={48} h={48} />
+          <T table={g("D-10")} onClick={c("D-10")} w={48} h={48} language={language} />
         </div>
 
         <div className="absolute" style={{ top: "44%", left: "10%" }}>
-          <Box label="WC" w={70} h={34} />
+          <Box label={copy.wc} w={70} h={34} />
         </div>
         <div className="absolute" style={{ top: "42%", left: "28%" }}>
-          <Box label="Lift" w={76} h={52} />
+          <Box label={copy.lift} w={76} h={52} />
         </div>
         <div className="absolute" style={{ top: "42%", left: "40%" }}>
-          <Box label="Lift" w={76} h={52} />
+          <Box label={copy.lift} w={76} h={52} />
         </div>
         <div className="absolute" style={{ top: "49%", left: "1%" }}>
-          <T table={g("VIP-1")} onClick={c("VIP-1")} w={80} h={52} />
+          <T table={g("VIP-1")} onClick={c("VIP-1")} w={80} h={52} language={language} />
         </div>
         <div className="absolute" style={{ top: "46%", left: "55%" }}>
-          <Box label="Bar" w={120} h={50} accent />
+          <Box label={copy.bar} w={120} h={50} accent />
         </div>
         <div className="absolute" style={{ top: "52%", left: "28%" }}>
-          <Box label="Stairs" w={140} h={38} />
+          <Box label={copy.stairs} w={140} h={38} />
         </div>
         <div className="absolute" style={{ top: "54%", left: "10%" }}>
-          <Box label="WC" w={70} h={34} />
+          <Box label={copy.wc} w={70} h={34} />
         </div>
 
         <div className="absolute" style={{ top: "42%", left: "86%" }}>
-          <T table={g("A-1")} onClick={c("A-1")} w={44} h={44} />
+          <T table={g("A-1")} onClick={c("A-1")} w={44} h={44} language={language} />
         </div>
         <div className="absolute" style={{ top: "48%", left: "86%" }}>
-          <T table={g("A-2")} onClick={c("A-2")} w={44} h={44} />
+          <T table={g("A-2")} onClick={c("A-2")} w={44} h={44} language={language} />
         </div>
         <div className="absolute" style={{ top: "54%", left: "86%" }}>
-          <T table={g("A-3")} onClick={c("A-3")} w={44} h={44} />
+          <T table={g("A-3")} onClick={c("A-3")} w={44} h={44} language={language} />
         </div>
         <div className="absolute" style={{ top: "60%", left: "86%" }}>
-          <T table={g("A-4")} onClick={c("A-4")} w={44} h={44} />
+          <T table={g("A-4")} onClick={c("A-4")} w={44} h={44} language={language} />
         </div>
 
         <div className="absolute" style={{ top: "70%", left: "2%" }}>
-          <T table={g("B-3")} onClick={c("B-3")} w={60} h={62} />
+          <T table={g("B-3")} onClick={c("B-3")} w={60} h={62} language={language} />
         </div>
         <div className="absolute" style={{ top: "70%", left: "28%" }}>
-          <T table={g("B-4")} onClick={c("B-4")} w={66} h={62} />
+          <T table={g("B-4")} onClick={c("B-4")} w={66} h={62} language={language} />
         </div>
         <div className="absolute" style={{ top: "70%", left: "44%" }}>
-          <T table={g("B-5")} onClick={c("B-5")} w={66} h={62} />
+          <T table={g("B-5")} onClick={c("B-5")} w={66} h={62} language={language} />
         </div>
 
         <div className="absolute" style={{ top: "68%", left: "86%" }}>
-          <T table={g("A-5")} onClick={c("A-5")} w={44} h={44} />
+          <T table={g("A-5")} onClick={c("A-5")} w={44} h={44} language={language} />
         </div>
         <div className="absolute" style={{ top: "74%", left: "86%" }}>
-          <T table={g("A-6")} onClick={c("A-6")} w={44} h={44} />
+          <T table={g("A-6")} onClick={c("A-6")} w={44} h={44} language={language} />
         </div>
         <div className="absolute" style={{ top: "80%", left: "86%" }}>
-          <T table={g("A-7")} onClick={c("A-7")} w={44} h={44} />
+          <T table={g("A-7")} onClick={c("A-7")} w={44} h={44} language={language} />
         </div>
         <div className="absolute" style={{ top: "86%", left: "86%" }}>
-          <T table={g("A-8")} onClick={c("A-8")} w={44} h={44} />
+          <T table={g("A-8")} onClick={c("A-8")} w={44} h={44} language={language} />
         </div>
 
         <div className="absolute" style={{ top: "80%", left: "2%" }}>
-          <T table={g("B-2")} onClick={c("B-2")} w={60} h={62} />
+          <T table={g("B-2")} onClick={c("B-2")} w={60} h={62} language={language} />
         </div>
         <div className="absolute" style={{ top: "88%", left: "10%" }}>
-          <T table={g("B-1")} onClick={c("B-1")} w={50} h={50} />
+          <T table={g("B-1")} onClick={c("B-1")} w={50} h={50} language={language} />
         </div>
         <div className="absolute" style={{ top: "82%", left: "38%" }}>
-          <T table={g("B-6")} onClick={c("B-6")} w={66} h={62} />
+          <T table={g("B-6")} onClick={c("B-6")} w={66} h={62} language={language} />
         </div>
         <div className="absolute" style={{ top: "84%", left: "60%" }}>
-          <T table={g("A-9")} onClick={c("A-9")} w={50} h={50} />
+          <T table={g("A-9")} onClick={c("A-9")} w={50} h={50} language={language} />
         </div>
       </div>
 
       <div className="flex flex-wrap justify-center gap-4 border-t border-border/70 px-4 py-5 text-center dark:border-white/10 sm:gap-6">
-        {Object.entries(zoneNames).map(([key, label]) => (
+        {Object.entries(copy.zoneNames).map(([key, label]) => (
           <div key={key} className="flex items-center gap-2">
             <div className={`h-3 w-3 rounded-full ${zoneColors[key].bg} border ${zoneColors[key].border}`} />
             <span className={`text-[10px] font-medium uppercase tracking-[0.15em] ${zoneColors[key].text}`}>
