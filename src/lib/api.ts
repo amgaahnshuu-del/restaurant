@@ -47,6 +47,14 @@ export type TableQuery = {
   time?: string;
 };
 
+export type CreateTablePayload = {
+  tableNumber: number;
+  capacity: number;
+  status?: TableStatusValue;
+};
+
+export type UpdateTablePayload = Partial<CreateTablePayload>;
+
 export type ReservationQuery = {
   page?: number;
   limit?: number;
@@ -109,6 +117,18 @@ export const api = {
     return requestJson<{ tables: TableRecord[]; availableTableIds: string[]; requestedSlot: string | null }>(
       `/api/tables${qs ? `?${qs}` : ""}`,
     );
+  },
+
+  async createTable(payload: CreateTablePayload) {
+    return requestJson<{ table: TableRecord }>("/api/tables", { ...json(payload), method: "POST" });
+  },
+
+  async updateTable(id: string, payload: UpdateTablePayload) {
+    return requestJson<{ table: TableRecord }>(`/api/tables/${id}`, { ...json(payload), method: "PUT" });
+  },
+
+  async deleteTable(id: string) {
+    return requestJson<{ id: string }>(`/api/tables/${id}`, { method: "DELETE" });
   },
 
   // Reservations

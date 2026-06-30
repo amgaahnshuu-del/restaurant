@@ -9,14 +9,14 @@ import { toast } from "@/hooks/use-toast";
 const emptyForm = {
   tableNumber: "",
   capacity: "",
-  status: "available" as TableStatusValue,
+  status: "AVAILABLE" as TableStatusValue,
 };
 
 export default function TableManagement() {
   const [tables, setTables] = useState<TableRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [editingTableId, setEditingTableId] = useState<number | null>(null);
+  const [editingTableId, setEditingTableId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
 
   const loadTables = async () => {
@@ -43,9 +43,9 @@ export default function TableManagement() {
   const summary = useMemo(
     () => ({
       total: tables.length,
-      available: tables.filter((table) => table.status === "available").length,
-      reserved: tables.filter((table) => table.status === "reserved").length,
-      occupied: tables.filter((table) => table.status === "occupied").length,
+      available: tables.filter((table) => table.status === "AVAILABLE").length,
+      reserved: tables.filter((table) => table.status === "RESERVED").length,
+      occupied: tables.filter((table) => table.status === "OCCUPIED").length,
     }),
     [tables],
   );
@@ -189,9 +189,9 @@ export default function TableManagement() {
                 onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as TableStatusValue }))}
                 className="w-full rounded-2xl border border-border/70 bg-background/70 px-4 py-3 font-sans text-sm text-foreground outline-none transition focus:border-primary/40"
               >
-                <option value="available">Available</option>
-                <option value="reserved">Reserved</option>
-                <option value="occupied">Occupied</option>
+                <option value="AVAILABLE">Available</option>
+                <option value="RESERVED">Reserved</option>
+                <option value="OCCUPIED">Occupied</option>
               </select>
             </label>
           </div>

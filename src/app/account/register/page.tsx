@@ -12,11 +12,11 @@ export default async function RegisterPage() {
   const user = await resolveAuthUser(cookieStore.get(AUTH_COOKIE_NAME)?.value);
   const language = resolveLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
 
-  if (user?.role === "admin") {
+  if (user?.role === "ADMIN") {
     redirect("/admin/reservations");
   }
 
-  if (user?.role === "customer") {
+  if (user?.role === "CUSTOMER") {
     redirect("/");
   }
 

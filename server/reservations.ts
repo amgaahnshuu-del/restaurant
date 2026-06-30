@@ -115,14 +115,13 @@ export type ApiTable = {
 };
 
 export type ApiUser = {
-  id: number;
+  id: string;
   email: string;
   name: string | null;
-  phone: string | null;
 };
 
 export type ApiReservation = {
-  id: number;
+  id: string;
   customerName: string;
   phoneNumber: string;
   reservationDate: string;
@@ -131,7 +130,7 @@ export type ApiReservation = {
   duration_hours: number;
   note: string | null;
   notes: string | null;
-  tableId: number;
+  tableId: string;
   source: ReservationSource;
   status: ReservationStatus;
   createdAt: string;
@@ -247,27 +246,29 @@ export const normalizeTable = (table: PrismaTable): ApiTable => ({
   capacity: table.capacity,
   status: table.status,
   createdAt: table.createdAt.toISOString(),
-  updatedAt: table.updatedAt.toISOString(),
+  updatedAt: table.createdAt.toISOString(),
   table_number: table.tableNumber,
   capacity_label: `${table.capacity} guests`,
   created_at: table.createdAt.toISOString(),
-  updated_at: table.updatedAt.toISOString(),
+  updated_at: table.createdAt.toISOString(),
 });
 
 export const normalizeReservation = (reservation: ReservationWithRelations): ApiReservation => {
   const table = reservation.table ? normalizeTable(reservation.table) : null;
-  const tableNumber = table?.tableNumber ?? reservation.tableId;
+  const tableNumber = table?.tableNumber ?? 0;
   const dateValue = reservation.reservationDate;
+
+  const timeValue = formatTimeOnly(reservation.startTime);
 
   return {
     id: reservation.id,
     customerName: reservation.customerName,
-    phoneNumber: reservation.phoneNumber,
+    phoneNumber: reservation.phone,
     reservationDate: dateValue.toISOString(),
-    reservationTime: reservation.reservationTime ?? formatTimeOnly(dateValue),
+    reservationTime: timeValue,
     guestCount: reservation.guestCount,
-    note: reservation.notes ?? null,
-    notes: reservation.notes ?? null,
+    note: reservation.note ?? null,
+    notes: reservation.note ?? null,
     tableId: reservation.tableId,
     source: reservation.source,
     status: reservation.status,
@@ -279,18 +280,17 @@ export const normalizeReservation = (reservation: ReservationWithRelations): Api
           id: reservation.user.id,
           email: reservation.user.email,
           name: reservation.user.name,
-          phone: reservation.user.phone,
         }
       : null,
     customer_name: reservation.customerName,
-    phone: reservation.phoneNumber,
-    phone_number: reservation.phoneNumber,
+    phone: reservation.phone,
+    phone_number: reservation.phone,
     reservation_date: formatDateOnly(dateValue),
-    reservation_time: reservation.reservationTime ?? formatTimeOnly(dateValue),
+    reservation_time: timeValue,
     duration_hours: DEFAULT_RESERVATION_DURATION_HOURS,
     guest_count: reservation.guestCount,
     guests: String(reservation.guestCount),
-    table_id: String(reservation.tableId),
+    table_id: reservation.tableId,
     table_number: tableNumber,
     capacity: table ? `${table.capacity} guests` : null,
     zone: deriveLegacyZone(tableNumber),

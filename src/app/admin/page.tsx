@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import type { ReservationStatus } from "@prisma/client";
 import { AUTH_COOKIE_NAME, resolveAuthUser } from "@server/auth";
 import { prisma } from "@/lib/prisma";
 import AdminDashboard, { type TableWithReservations } from "./AdminDashboard";
@@ -25,7 +26,7 @@ export default async function AdminDashboardPage() {
   const endOfWindow = new Date(startOfToday);
   endOfWindow.setDate(endOfWindow.getDate() + 11);
 
-  const activeStatuses = ["PENDING", "CONFIRMED"] as const;
+  const activeStatuses: ReservationStatus[] = ["PENDING", "CONFIRMED"];
 
   const [totalTables, todayReservations, upcomingReservations, tables] = await Promise.all([
     prisma.table.count(),
@@ -82,6 +83,7 @@ export default async function AdminDashboardPage() {
     upcomingReservations: table.reservations.map((r) => ({
       id: r.id,
       customerName: r.customerName,
+      customer_name: r.customerName,
       phoneNumber: r.phone,
       phone: r.phone,
       phone_number: r.phone,

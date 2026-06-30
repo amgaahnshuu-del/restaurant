@@ -54,9 +54,9 @@ export default async function AccountPage() {
   const now = new Date();
   const upcomingCount = reservations.filter((reservation) => {
     const reservationStart = new Date(`${reservation.reservation_date}T${reservation.reservation_time}`);
-    return reservation.status === "confirmed" && reservationStart >= now;
+    return reservation.status === "CONFIRMED" && reservationStart >= now;
   }).length;
-  const confirmedCount = reservations.filter((reservation) => reservation.status === "confirmed").length;
+  const confirmedCount = reservations.filter((reservation) => reservation.status === "CONFIRMED").length;
   
   const copy = {
     en: {
@@ -65,8 +65,7 @@ export default async function AccountPage() {
       profileDetails: [
         { label: "Full name", value: user.name || "Guest User" },
         { label: "Email address", value: user.email },
-        { label: "Phone number", value: user.phone || "Not set" },
-        { label: "Account role", value: user.role === "customer" ? "Customer" : "Admin" },
+        { label: "Account role", value: user.role === "CUSTOMER" ? "Customer" : "Admin" },
       ],
       settingsTitle: "Account settings",
       settingsDescription: "A quick view of the guest preferences active on this account.",
@@ -104,8 +103,11 @@ export default async function AccountPage() {
       phoneLabel: "Phone",
       guestsLabel: "Guests",
       statusLabels: {
-        confirmed: "Confirmed",
-        cancelled: "Cancelled",
+        PENDING: "Pending",
+        CONFIRMED: "Confirmed",
+        IN_PROGRESS: "In Progress",
+        CANCELLED: "Cancelled",
+        COMPLETED: "Completed",
       },
       durationSuffix: (hours: number) => `${hours} hour${hours > 1 ? "s" : ""}`,
       welcomeBack: "Welcome back,",
@@ -116,8 +118,7 @@ export default async function AccountPage() {
       profileDetails: [
         { label: "Бүтэн нэр", value: user.name || "Зочин хэрэглэгч" },
         { label: "Имэйл хаяг", value: user.email },
-        { label: "Утасны дугаар", value: user.phone || "Оруулаагүй" },
-        { label: "Бүртгэлийн төрөл", value: user.role === "customer" ? "Хэрэглэгч" : "Админ" },
+        { label: "Бүртгэлийн төрөл", value: user.role === "CUSTOMER" ? "Хэрэглэгч" : "Админ" },
       ],
       settingsTitle: "Бүртгэлийн тохиргоо",
       settingsDescription: "Энэ бүртгэл дээр идэвхтэй байгаа зочны тохиргооны товч тойм.",
@@ -155,8 +156,11 @@ export default async function AccountPage() {
       phoneLabel: "Утас",
       guestsLabel: "Зочин",
       statusLabels: {
-        confirmed: "Баталгаажсан",
-        cancelled: "Цуцлагдсан",
+        PENDING: "Хүлээгдэж буй",
+        CONFIRMED: "Баталгаажсан",
+        IN_PROGRESS: "Үргэлжилж буй",
+        CANCELLED: "Цуцлагдсан",
+        COMPLETED: "Дууссан",
       },
       durationSuffix: (hours: number) => `${hours} цаг`,
       welcomeBack: "Тавтай морилно уу,",
@@ -369,7 +373,7 @@ export default async function AccountPage() {
 
                       <Badge
                         className={`rounded-full px-3 py-1 text-[10px] uppercase tracking-wider ${
-                          reservation.status === "confirmed"
+                          reservation.status === "CONFIRMED"
                             ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
                             : "bg-red-500/20 text-red-400 border-red-500/30"
                         }`}

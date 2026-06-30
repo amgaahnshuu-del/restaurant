@@ -221,12 +221,13 @@ const ReservationSection = () => {
     try {
       await api.createReservation({
         customerName: customerName.trim(),
-        phoneNumber: phoneNumber.trim(),
-        reservationDate: combineDateAndTime(reservationDate, reservationTime),
+        phone: phoneNumber.trim(),
+        reservationDate,
+        startTime: combineDateAndTime(reservationDate, reservationTime),
         guestCount: Number(guestCount),
         note: note.trim() || null,
         tableId: selectedTable.id,
-        source: "website",
+        source: "WEBSITE",
       });
 
       toast({
