@@ -16,20 +16,13 @@ import {
 import cocktail1 from "@/assets/cocktail-1.jpg";
 import cocktail2 from "@/assets/cocktail-2.jpg";
 import cocktail3 from "@/assets/cocktail-3.jpg";
-import dish4 from "@/assets/dish-4.png";
-import dish5 from "@/assets/dish-5.png";
-import dish6 from "@/assets/dish-6.png";
-import drink1 from "@/assets/drink-1.jpg";
 import drink2 from "@/assets/drink-2.jpg";
 import gustoLogo from "@/assets/gusto-logo.png";
-import menuBeefFillet from "@/assets/menu-main-beef-fillet.png";
-import menuBeefRisotto from "@/assets/menu-main-beef-skirt-risotto.png";
 import menuBruschetta from "@/assets/menu-snack-bruschetta-mini-pizza.png";
 import menuSnackBeefSkirt from "@/assets/menu-snack-beef-skirt.png";
 import menuSnackBeefTongue from "@/assets/menu-snack-beef-tongue.png";
 import menuSnackChickenLollipop from "@/assets/menu-snack-chicken-lollipop.png";
 import menuSnackShellPasta from "@/assets/menu-snack-gusto-in-shell-pasta.png";
-import menuChocolateSouffle from "@/assets/menu-dessert-chocolate-souffle.png";
 import menuMangoSoup from "@/assets/menu-soup-mango.png";
 import menuPastaAlfredo from "@/assets/menu-pasta-alfredo.png";
 import menuPastaBeefLasagne from "@/assets/menu-pasta-beef-lasagne.png";
@@ -57,8 +50,6 @@ import menuTomatoSoup from "@/assets/menu-soup-tomato-consomme.png";
 import menuWarmNorwegianSalmon from "@/assets/menu-warm-appetizer-norwegian-salmon.png";
 import menuWarmPoachedEgg from "@/assets/menu-warm-appetizer-poached-egg.png";
 import menuWarmRoastedBeef from "@/assets/menu-warm-appetizer-roasted-beef.png";
-import wine1 from "@/assets/wine-1.jpg";
-import wine2 from "@/assets/wine-2.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type MenuMode = "food" | "drink";
@@ -323,22 +314,70 @@ const categories: MenuCategory[] = [
     icon: Utensils,
     items: [
       {
-        name: "Mongolian Asian Plate",
-        description: "Mongolian and Asian inspired house plate.",
-        image: dish4,
+        name: "Gusto Special Khuushuur",
+        description: "Beef khuushuur with puff pastry, iceberg salad, passion fruit sauce.",
+        image: "/newFood/37.png",
+        tag: "Mongolian",
+      },
+      {
+        name: "Beef Fillet Stroganoff",
+        description: "Hashbrown, cornichon, bellpeper, whipped cream.",
+        image: "/newFood/38.png",
         tag: "Asia Mongolia",
       },
       {
-        name: "Wok Style Special",
-        description: "Asian style plate with vegetables, protein and house sauce.",
-        image: dish5,
+        name: "Fried Beef Liver",
+        description: "Caramelized onion, pine nut, parsley, balsamico jus, potato mousseline, brie de meaux cheese.",
+        image: "/newFood/39.png",
+        tag: "Asia Mongolia",
+      },
+      {
+        name: "Stir-Fry Beef",
+        description: "Sautéed beef /hot pan/, iceberg salad, mini tomato, pickled radish, dressing, basmati rice.",
+        image: "/newFood/40.png",
+        tag: "Asia Mongolia",
+      },
+      {
+        name: "Asian Spicy Beef",
+        description: "Beef stir fry /hot pan/, carrot, hot chili sauce, basmati rice, sesame.",
+        image: "/newFood/41.png",
         tag: "Asian",
       },
       {
-        name: "House Fusion Dish",
-        description: "Gusto fusion plate inspired by Mongolian and Asian flavors.",
-        image: dish6,
-        tag: "Fusion",
+        name: "Tsuivan",
+        description: "Beef brisket, handmade whole wheat flour, butter seasoned vegetable, spring onion & jalapeno.",
+        image: "/newFood/42.png",
+        tag: "Mongolian",
+      },
+      {
+        name: "Khuushuur",
+        description: "Traditional mongolian beef khuushuur, three types of salad.",
+        image: "/newFood/43.png",
+        tag: "Mongolian",
+      },
+      {
+        name: "Buuz",
+        description: "Steamed mongolian beef dumplings, three types of salad.",
+        image: "/newFood/44.png",
+        tag: "Mongolian",
+      },
+      {
+        name: "Braised Beef",
+        description: "Beef brisket, flat bean, caramelized onion, basmati rice, glazed bellpeper & bok choy, sesame sauce.",
+        image: "/newFood/45.png",
+        tag: "Asia Mongolia",
+      },
+      {
+        name: "Sweet & Spicy Chicken",
+        description: "Sweet & spicy glazed chicken, pickled turnip, basmati rice, sesame, cresse.",
+        image: "/newFood/46.png",
+        tag: "Asian",
+      },
+      {
+        name: "Cheese Chicken",
+        description: "Korean spiced chicken, sour cabbage, rice cakes & cream cheese, basmati rice, sesame.",
+        image: "/newFood/47.png",
+        tag: "Asian",
       },
     ],
   },
@@ -348,16 +387,64 @@ const categories: MenuCategory[] = [
     icon: Utensils,
     items: [
       {
+        name: "Beef Fillet",
+        description: "Carrot cream, pea beans, mushroom, cucumber gel, cresse, potato mousseline & milk foam, glazed mini carrot, bok choy, jus.",
+        image: "/newFood/48.png",
+        tag: "Steak",
+      },
+      {
         name: "Beef Skirt & Risotto",
-        description: "Shiitake mushroom risotto, parsley oil, cress, mustard foam, black pepper and sea salt.",
-        image: menuBeefRisotto,
+        description: "Shiitake mushroom risotto, parsley oil & cresse, mustard foam, black pepe, sea salt.",
+        image: "/newFood/53.png",
         tag: "Main",
       },
       {
-        name: "Beef Fillet",
-        description: "Carrot cream, pea beans, mushroom, cucumber gel, cress, potato mousseline, milk foam, glazed mini carrot, bok choy and jus.",
-        image: menuBeefFillet,
+        name: "Lamb Rack & Herb Crust",
+        description: "Glazed zucchini & pumpkin ball, cucumber & lemon gel, cresse, creamy polenta, ratatouille, thyme jus.",
+        image: "/newFood/49.png",
+        tag: "Main",
+      },
+      {
+        name: "Osso Bucco",
+        description: "Potato mousseline, gremolata, asparagus, mini carrot, hollandaise sauce, krokant.",
+        image: "/newFood/50.png",
+        tag: "Main",
+      },
+      {
+        name: "Pork Sirloin",
+        description: "Flat beans, mini carrot, krokant, champignon sauce, pesto, fettuccini pasta, creamy sour cabbage.",
+        image: "/newFood/51.png",
+        tag: "Main",
+      },
+      {
+        name: "Beef Sirloin",
+        description: "Creamy potato, lemon & cucumber gel, jus, flat beans, tomato concasse, capers, black pepe, sea salt, cresse.",
+        image: "/newFood/52.png",
         tag: "Steak",
+      },
+      {
+        name: "BBQ Baby Ribs",
+        description: "Iceberg salad, mini tomato, potato cappuccino, pickled radish, dressing.",
+        image: "/newFood/54.png",
+        tag: "Main",
+      },
+      {
+        name: "Stuffed Chicken Breast",
+        description: "Sautéed cauliflower, broccoli & carrot cream, creamy spinach, basmati rice, creamy sauce, cresse.",
+        image: "/newFood/56.png",
+        tag: "Main",
+      },
+      {
+        name: "Chicken Supreme with Ananas Mousse",
+        description: "Glazed mini carrot, tomato, bok choy, basmati rice, cresse, cream sauce.",
+        image: "/newFood/57.png",
+        tag: "Main",
+      },
+      {
+        name: "Meat Ball & Cheese",
+        description: "Potato cappuccino, ratatouille, tomato sauce, cresse & basil.",
+        image: "/newFood/58.png",
+        tag: "Main",
       },
     ],
   },
@@ -368,8 +455,20 @@ const categories: MenuCategory[] = [
     items: [
       {
         name: "Chocolate Souffle",
-        description: "Chocolate souffle from the Gusto dessert menu.",
-        image: menuChocolateSouffle,
+        description: "Whipped cream, mint.",
+        image: "/newFood/60.png",
+        tag: "Dessert",
+      },
+      {
+        name: "Strawberry Opera",
+        description: "Vanilla cream, strawberry, mint, berry sauce.",
+        image: "/newFood/59.png",
+        tag: "Dessert",
+      },
+      {
+        name: "Mille Feuille",
+        description: "Vanilla cream, caramel cream, berries, mint, berry sauce.",
+        image: "/newFood/61.png",
         tag: "Dessert",
       },
     ],
@@ -380,22 +479,10 @@ const categories: MenuCategory[] = [
     icon: Wine,
     items: [
       {
-        name: "Red Wine Selection",
-        description: "Full-bodied pours chosen for pasta, steak and long evenings.",
-        image: wine1,
+        name: "Wine Selection",
+        description: "Sparkling, white and red wines chosen to complement every dish on our menu.",
+        image: "/wine.menu.jpg",
         tag: "Wine",
-      },
-      {
-        name: "White Wine Selection",
-        description: "Fresh, bright wines for starters, seafood and lighter plates.",
-        image: wine2,
-        tag: "Wine",
-      },
-      {
-        name: "Dinner Pairing",
-        description: "Ask the team for a bottle matched to your selected dishes.",
-        image: drink1,
-        tag: "Pairing",
       },
     ],
   },
@@ -675,7 +762,7 @@ const Menu = () => {
               </p>
             </div>
 
-            <div className="grid gap-4 bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(34_28%_91%/.92),hsl(31_24%_86%/.92))] p-4 dark:bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(20_14%_8%),hsl(18_16%_4%))] sm:grid-cols-2 sm:p-5 lg:grid-cols-3 lg:p-6">
+            <div className={`grid gap-4 bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(34_28%_91%/.92),hsl(31_24%_86%/.92))] p-4 dark:bg-[radial-gradient(circle_at_50%_0%,hsl(38_56%_46%/.12),transparent_34%),linear-gradient(180deg,hsl(20_14%_8%),hsl(18_16%_4%))] sm:p-5 lg:p-6 ${selectedCategory.items.length > 1 ? "sm:grid-cols-2 lg:grid-cols-3" : ""}`}>
               {selectedCategory.items.map((item, index) => (
                 <motion.article
                   key={item.name}

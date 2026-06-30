@@ -30,8 +30,12 @@ export default async function AccountPage() {
     redirect("/account/login");
   }
 
-  if (user.role === "admin") {
+  if (user.role === "ADMIN") {
     redirect("/admin/reservations");
+  }
+
+  if (user.role === "STAFF") {
+    redirect("/staff/reservations");
   }
 
   const reservations = (

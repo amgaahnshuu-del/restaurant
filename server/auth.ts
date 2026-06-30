@@ -1,13 +1,13 @@
-import type { Prisma, UserRole } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { SignJWT, jwtVerify } from "jose";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
+import { AUTH_COOKIE_NAME, COOKIE_MAX_AGE, signToken, verifyToken } from "@/lib/jwt";
 
-export const AUTH_COOKIE_NAME = "gusto_session_token";
+export { AUTH_COOKIE_NAME };
 
-const userRoleSchema = z.enum(["admin", "customer"]);
+const userRoleSchema = z.enum(["ADMIN", "STAFF", "CUSTOMER"]);
 
 const loginSchema = z.object({
   email: z.string().min(1),
@@ -17,113 +17,55 @@ const loginSchema = z.object({
 
 const registerSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  phone: z.string().trim().min(3).max(20),
   email: z.string().email(),
   password: z.string().min(6).max(128),
 });
 
-export const authUserSelect = {
+const authUserSelect = {
   id: true,
   email: true,
-  phone: true,
   role: true,
   name: true,
 } satisfies Prisma.UserSelect;
 
-export type AuthUser = Prisma.UserGetPayload<{
-  select: typeof authUserSelect;
-}>;
-
+export type AuthUser = Prisma.UserGetPayload<{ select: typeof authUserSelect }>;
 export type LoginPayload = z.infer<typeof loginSchema>;
 export type RegisterPayload = z.infer<typeof registerSchema>;
-
-const getJwtSecret = () => {
-  const value = process.env.JWT_SECRET;
-
-  if (!value) {
-    throw new Error("JWT_SECRET is not configured.");
-  }
-
-  return new TextEncoder().encode(value);
-};
 
 export const parseLoginPayload = (payload: unknown) => loginSchema.parse(payload);
 export const parseRegisterPayload = (payload: unknown) => registerSchema.parse(payload);
 
-export const createAuthToken = async (payload: { userId: number; email: string; role: UserRole }) => {
-  return new SignJWT(payload)
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(getJwtSecret());
-};
+export const createAuthToken = async (payload: { userId: string; email: string; role: "ADMIN" | "STAFF" | "CUSTOMER" }) =>
+  signToken(payload);
 
-export const verifyAuthToken = async (token: string) => {
-  const { payload } = await jwtVerify(token, getJwtSecret());
-
-  return {
-    userId: Number(payload.userId),
-    email: String(payload.email),
-    role: userRoleSchema.parse(payload.role),
-  };
-};
+export const verifyAuthToken = (token: string) => verifyToken(token);
 
 export const resolveAuthUser = async (token?: string | null): Promise<AuthUser | null> => {
-  if (!token) {
-    return null;
-  }
-
+  if (!token) return null;
   try {
-    const payload = await verifyAuthToken(token);
-
-    return await prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: authUserSelect,
-    });
+    const { userId } = await verifyToken(token);
+    return prisma.user.findUnique({ where: { id: userId }, select: authUserSelect });
   } catch {
     return null;
   }
 };
 
 export const authenticateUser = async (email: string, password: string) => {
-  if (email === "2" && password === "1") {
-    return prisma.user.findFirst({
-      where: { role: "admin" },
-    });
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
-  });
-
-  if (!user) {
-    return null;
-  }
-
-  const isValid = await bcrypt.compare(password, user.passwordHash);
-
-  if (!isValid) {
-    return null;
-  }
-
-  return user;
+  const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+  if (!user) return null;
+  const valid = await bcrypt.compare(password, user.password);
+  return valid ? user : null;
 };
 
-export const registerCustomer = async ({ name, phone, email, password }: RegisterPayload) => {
-  const passwordHash = await bcrypt.hash(password, 10);
-
+export const registerCustomer = async ({ name, email, password }: RegisterPayload) => {
+  const hashed = await bcrypt.hash(password, 10);
   return prisma.user.create({
-    data: {
-      name: name.trim(),
-      phone: phone.trim(),
-      email: email.toLowerCase().trim(),
-      passwordHash,
-      role: "customer",
-    },
+    data: { name: name.trim(), email: email.toLowerCase().trim(), password: hashed, role: "CUSTOMER" },
   });
 };
 
-export const getPostLoginPath = (role: UserRole) => (role === "admin" ? "/admin/reservations" : "/");
+export const getPostLoginPath = (role: "ADMIN" | "STAFF" | "CUSTOMER") =>
+  role === "ADMIN" ? "/admin/reservations" : role === "STAFF" ? "/staff/reservations" : "/";
 
 export const attachAuthCookie = (response: NextResponse, token: string) => {
   response.cookies.set({
@@ -133,7 +75,7 @@ export const attachAuthCookie = (response: NextResponse, token: string) => {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: COOKIE_MAX_AGE,
   });
 };
 

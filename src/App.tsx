@@ -6,12 +6,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useState, useCallback } from "react";
 import Index from "./screens/Index";
 import Branch1 from "./screens/Branch1";
 import Branch2 from "./screens/Branch2";
 import Menu from "./screens/Menu";
 import NotFound from "./screens/NotFound";
 import ThemeProvider from "./components/ThemeProvider";
+import LoadingScreen from "./components/LoadingScreen";
 
 const queryClient = new QueryClient();
 
@@ -39,18 +41,26 @@ const AnimatedRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AnimatedRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [loading, setLoading] = useState(true);
+  const handleLoadComplete = useCallback(() => setLoading(false), []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AnimatePresence>
+            {loading && <LoadingScreen onComplete={handleLoadComplete} />}
+          </AnimatePresence>
+          <BrowserRouter>
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

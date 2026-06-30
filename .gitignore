@@ -17,6 +17,8 @@ dist-ssr
 .env.*
 !.env.example
 
+public/newCocteil/Cocktail QR menu (1).pdf
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -26,9 +26,9 @@ export const reservationHours = new Set([
   "22",
 ]);
 
-export const tableStatusValues = ["available", "reserved", "occupied"] as const satisfies readonly TableStatus[];
-export const reservationSourceValues = ["website", "walk_in", "phone"] as const satisfies readonly ReservationSource[];
-export const reservationStatusValues = ["pending", "confirmed", "cancelled", "completed"] as const satisfies readonly ReservationStatus[];
+export const tableStatusValues = ["AVAILABLE", "RESERVED", "OCCUPIED"] as const satisfies readonly TableStatus[];
+export const reservationSourceValues = ["WEBSITE", "WALK_IN", "PHONE"] as const satisfies readonly ReservationSource[];
+export const reservationStatusValues = ["PENDING", "CONFIRMED", "IN_PROGRESS", "CANCELLED", "COMPLETED"] as const satisfies readonly ReservationStatus[];
 
 const phoneSchema = z.string().trim().min(3).max(20);
 const nameSchema = z.string().trim().min(1).max(100);
@@ -55,6 +55,7 @@ export const tableListQuerySchema = z.object({
   reservationDate: z.string().trim().min(1).optional(),
   date: z.string().date().optional(),
   time: z.string().trim().min(1).optional(),
+  excludeReservationId: z.coerce.number().int().positive().optional(),
 });
 
 export const reservationCreateSchema = z.object({
@@ -100,7 +101,7 @@ export const cancelSchema = z
   });
 
 export type ApiTable = {
-  id: number;
+  id: string;
   tableNumber: number;
   capacity: number;
   status: TableStatus;
@@ -110,6 +111,7 @@ export type ApiTable = {
   capacity_label: string;
   created_at: string;
   updated_at: string;
+  reservedTimes?: string[];
 };
 
 export type ApiUser = {
@@ -124,8 +126,11 @@ export type ApiReservation = {
   customerName: string;
   phoneNumber: string;
   reservationDate: string;
+  reservationTime: string;
   guestCount: number;
+  duration_hours: number;
   note: string | null;
+  notes: string | null;
   tableId: number;
   source: ReservationSource;
   status: ReservationStatus;
@@ -140,7 +145,6 @@ export type ApiReservation = {
   reservation_time: string;
   guest_count: number;
   guests: string;
-  duration_hours: number;
   table_id: string;
   table_number: number;
   capacity: string | null;
@@ -206,6 +210,19 @@ export const reservationOverlaps = (existingDate: Date, requestedDate: Date) => 
   return start < requestedEnd && requestedStart < end;
 };
 
+export const isWithinReservationWindow = (reservationDate: Date) => {
+  const today = toDateOnly(formatDateOnly(new Date()));
+  const minAllowed = new Date(today);
+  minAllowed.setDate(minAllowed.getDate() + 1);
+
+  const maxAllowed = new Date(today);
+  maxAllowed.setDate(maxAllowed.getDate() + 10);
+
+  const targetDate = toDateOnly(formatDateOnly(reservationDate));
+
+  return targetDate >= minAllowed && targetDate <= maxAllowed;
+};
+
 export const deriveLegacyZone = (tableNumber: number) => {
   if (tableNumber <= 4) {
     return "A";
@@ -222,7 +239,7 @@ export const deriveLegacyZone = (tableNumber: number) => {
   return "D";
 };
 
-export const isActiveReservationStatus = (status: ReservationStatus) => status === "pending" || status === "confirmed";
+export const isActiveReservationStatus = (status: ReservationStatus) => status === "PENDING" || status === "CONFIRMED";
 
 export const normalizeTable = (table: PrismaTable): ApiTable => ({
   id: table.id,
@@ -247,8 +264,10 @@ export const normalizeReservation = (reservation: ReservationWithRelations): Api
     customerName: reservation.customerName,
     phoneNumber: reservation.phoneNumber,
     reservationDate: dateValue.toISOString(),
+    reservationTime: reservation.reservationTime ?? formatTimeOnly(dateValue),
     guestCount: reservation.guestCount,
-    note: reservation.note ?? null,
+    note: reservation.notes ?? null,
+    notes: reservation.notes ?? null,
     tableId: reservation.tableId,
     source: reservation.source,
     status: reservation.status,
@@ -267,10 +286,10 @@ export const normalizeReservation = (reservation: ReservationWithRelations): Api
     phone: reservation.phoneNumber,
     phone_number: reservation.phoneNumber,
     reservation_date: formatDateOnly(dateValue),
-    reservation_time: formatTimeOnly(dateValue),
+    reservation_time: reservation.reservationTime ?? formatTimeOnly(dateValue),
+    duration_hours: DEFAULT_RESERVATION_DURATION_HOURS,
     guest_count: reservation.guestCount,
     guests: String(reservation.guestCount),
-    duration_hours: DEFAULT_RESERVATION_DURATION_HOURS,
     table_id: String(reservation.tableId),
     table_number: tableNumber,
     capacity: table ? `${table.capacity} guests` : null,

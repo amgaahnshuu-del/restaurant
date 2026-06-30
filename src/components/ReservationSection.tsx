@@ -6,18 +6,34 @@ import { CalendarDays, CircleCheckBig, Clock3, LoaderCircle, MapPin, Phone, Spar
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { api, type TableRecord } from "@/lib/api";
+import RestaurantFloorMap from "@/components/RestaurantFloorMap";
 
-const getTodayValue = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
+const getDateValue = (offsetDays = 0) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+const getTodayValue = () => getDateValue(0);
+const getMaxDateValue = () => getDateValue(10);
 
 const combineDateAndTime = (date: string, time: string) => {
   const normalizedTime = time.length === 5 ? `${time}:00` : time;
   return `${date}T${normalizedTime}`;
+};
+
+const isDateWithinWindow = (value: string) => {
+  if (!value) {
+    return false;
+  }
+
+  const selected = new Date(value);
+  const min = new Date(getDateValue(0));
+  const max = new Date(getDateValue(10));
+  return selected >= min && selected <= max;
 };
 
 const ReservationSection = () => {
@@ -29,7 +45,7 @@ const ReservationSection = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [guestCount, setGuestCount] = useState("2");
   const [note, setNote] = useState("");
-  const [selectedTableId, setSelectedTableId] = useState<number | null>(null);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serviceError, setServiceError] = useState<string | null>(null);
@@ -130,13 +146,30 @@ const ReservationSection = () => {
     [tables, selectedTableId],
   );
 
-  const availableTableCount = useMemo(
-    () => tables.filter((table) => table.availableForRequestedSlot).length,
+  const availableTables = useMemo(
+    () => tables.filter((table) => table.availableForRequestedSlot),
     [tables],
+  );
+
+  const reservedTables = useMemo(
+    () => tables.filter((table) => !table.availableForRequestedSlot),
+    [tables],
+  );
+
+  const availableTableCount = useMemo(
+    () => availableTables.length,
+    [availableTables],
   );
 
   const loadTables = async () => {
     setIsLoading(true);
+
+    if (!isDateWithinWindow(reservationDate)) {
+      setServiceError("Select a reservation date 1-10 days from today.");
+      setTables([]);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const data = await api.getTables({
@@ -147,7 +180,7 @@ const ReservationSection = () => {
       setTables(data.tables);
       setServiceError(null);
 
-      if (!data.availableTableIds.includes(selectedTableId ?? -1)) {
+      if (!data.availableTableIds.includes(selectedTableId ?? "")) {
         setSelectedTableId((current) => (current && data.availableTableIds.includes(current) ? current : null));
       }
     } catch (error) {
@@ -300,6 +333,8 @@ const ReservationSection = () => {
                   </label>
                   <input
                     type="date"
+                    min={getTodayValue()}
+                    max={getMaxDateValue()}
                     value={reservationDate}
                     onChange={(event) => setReservationDate(event.target.value)}
                     className="w-full rounded-xl border border-amber-500/20 bg-black/50 px-4 py-3 font-sans text-base text-white outline-none transition focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
@@ -356,66 +391,25 @@ const ReservationSection = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 sm:p-8">
+            <div className="p-4 sm:p-6">
               {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <LoaderCircle className="h-8 w-8 animate-spin text-amber-400" />
+                <div className="flex flex-col items-center justify-center gap-3 py-16">
+                  <LoaderCircle className="h-7 w-7 animate-spin text-amber-400" />
+                  <p className="text-neutral-500 text-xs uppercase tracking-[0.25em]">Loading floor plan…</p>
                 </div>
               ) : serviceError ? (
-                <div className="text-center py-8">
-                  <p className="text-red-400">{serviceError}</p>
+                <div className="rounded-xl border border-red-500/20 bg-red-950/20 px-6 py-8 text-center">
+                  <p className="text-red-400 text-sm">{serviceError}</p>
                 </div>
               ) : tables.length ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {tables.map((table) => {
-                    const isSelected = table.id === selectedTableId;
-                    const isAvailable = Boolean(table.availableForRequestedSlot);
-
-                    return (
-                      <button
-                        key={table.id}
-                        type="button"
-                        onClick={() => isAvailable && setSelectedTableId(table.id)}
-                        disabled={!isAvailable}
-                        className={`
-                          relative rounded-xl border-2 p-4 text-left transition-all duration-300
-                          ${isSelected 
-                            ? "border-amber-400 bg-amber-500/10 shadow-lg shadow-amber-500/20" 
-                            : isAvailable 
-                              ? "border-amber-500/20 bg-black/30 hover:border-amber-500/40 hover:bg-black/40" 
-                              : "border-neutral-800 bg-neutral-900/50 opacity-50 cursor-not-allowed"
-                          }
-                        `}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2">
-                            <CheckCircle2 className="h-4 w-4 text-amber-400" />
-                          </div>
-                        )}
-                        <div className="mb-2">
-                          <div className="text-lg font-medium text-white">{copy.tableLabel(table)}</div>
-                          <div className="text-xs text-neutral-400 mt-1">{copy.capacityLabel(table)}</div>
-                        </div>
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-center gap-1.5 text-xs text-neutral-500">
-                            <MapPin className="h-3 w-3" />
-                            <span>{table.status === "available" ? "Premium Location" : "Booked"}</span>
-                          </div>
-                          <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                            isAvailable 
-                              ? "bg-emerald-500/20 text-emerald-400" 
-                              : "bg-red-500/20 text-red-400"
-                          }`}>
-                            {isAvailable ? copy.available : copy.slotUnavailable}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <RestaurantFloorMap
+                  tables={tables}
+                  selectedTableId={selectedTableId}
+                  onSelect={(id) => setSelectedTableId(id)}
+                />
               ) : (
-                <div className="text-center py-12">
-                  <p className="text-neutral-400">{copy.noTables}</p>
+                <div className="rounded-xl border border-dashed border-neutral-800 bg-black/30 px-6 py-12 text-center">
+                  <p className="text-neutral-400 text-sm">{copy.noTables}</p>
                 </div>
               )}
             </div>

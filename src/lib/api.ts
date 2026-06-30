@@ -1,19 +1,48 @@
-import type { ApiReservation, ApiTable } from "@server/reservations";
 import { readBrowserLanguage, translateApiMessage } from "@/lib/language";
 
-export type TableStatusValue = "available" | "reserved" | "occupied";
-export type ReservationSourceValue = "website" | "walk_in" | "phone";
-export type ReservationStatusValue = "pending" | "confirmed" | "cancelled" | "completed";
+// ── Enum types (uppercase to match backend) ────────────────────────────────
+export type TableStatusValue       = "AVAILABLE" | "RESERVED" | "OCCUPIED";
+export type ReservationSourceValue = "WEBSITE"   | "WALK_IN"  | "PHONE";
+export type ReservationStatusValue = "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "CANCELLED" | "COMPLETED";
 
-export type TableRecord = ApiTable & {
+// ── Record types (matching actual API response shape) ──────────────────────
+export type TableRecord = {
+  id: string;
+  tableNumber: number;
+  capacity: number;
+  status: TableStatusValue;
+  createdAt: string;
+  capacity_label: string;
   availableForRequestedSlot?: boolean;
+  reservedTimes?: string[];
 };
 
-export type ReservationRecord = ApiReservation;
+export type ReservationUserRecord = {
+  id: string;
+  name: string;
+  email: string;
+};
 
+export type ReservationRecord = {
+  id: string;
+  customerName: string;
+  phone: string;
+  guestCount: number;
+  reservationDate: string;
+  startTime: string;
+  endTime: string;
+  source: ReservationSourceValue;
+  status: ReservationStatusValue;
+  note: string | null;
+  tableId: string;
+  table: (TableRecord & { tableNumber: number }) | null;
+  user: ReservationUserRecord | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// ── Query / payload types ──────────────────────────────────────────────────
 export type TableQuery = {
-  status?: TableStatusValue;
-  reservationDate?: string;
   date?: string;
   time?: string;
 };
@@ -25,57 +54,25 @@ export type ReservationQuery = {
   search?: string;
   status?: ReservationStatusValue;
   source?: ReservationSourceValue;
-  tableId?: number;
-  time?: string;
-  durationHours?: number;
+  tableId?: string;
 };
-
-export type CreateTablePayload = {
-  tableNumber: number;
-  capacity: number;
-  status?: TableStatusValue;
-};
-
-export type UpdateTablePayload = Partial<CreateTablePayload>;
 
 export type CreateReservationPayload = {
-  customerName?: string;
-  customer_name?: string;
-  phoneNumber?: string;
-  phone?: string;
-  reservationDate?: string;
-  reservation_date?: string;
-  reservationTime?: string;
-  reservation_time?: string;
-  guestCount?: number;
-  guest_count?: number;
+  customerName: string;
+  phone: string;
+  reservationDate: string;
+  startTime: string;
+  guestCount: number;
+  tableId: string;
+  source: ReservationSourceValue;
   note?: string | null;
-  tableId?: number;
-  table_id?: number;
-  source?: ReservationSourceValue;
-  status?: ReservationStatusValue;
 };
 
 export type UpdateReservationPayload = Partial<CreateReservationPayload>;
 
-const API_BASE_URL = "";
-
-const toDateTime = (date?: string, time?: string) => {
-  if (!date) {
-    return "";
-  }
-
-  if (!time) {
-    return date;
-  }
-
-  const normalizedTime = time.length === 5 ? `${time}:00` : time;
-  return `${date}T${normalizedTime}`;
-};
-
+// ── HTTP helpers ───────────────────────────────────────────────────────────
 const readErrorMessage = async (response: Response) => {
   const language = readBrowserLanguage();
-
   try {
     const data = await response.json();
     return translateApiMessage(data.message || "Request failed.", language);
@@ -85,174 +82,88 @@ const readErrorMessage = async (response: Response) => {
 };
 
 const requestJson = async <T>(url: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(`${API_BASE_URL}${url}`, init);
-
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response));
+  const response = await fetch(url, init);
+  if (!response.ok) throw new Error(await readErrorMessage(response));
+  const body = await response.json();
+  // Auto-unwrap { success, data } envelope used by ok() / created()
+  if (body && typeof body === "object" && "success" in body && "data" in body) {
+    return body.data as T;
   }
-
-  return (await response.json()) as T;
+  return body as T;
 };
 
-const normalizeTablePayload = (payload: CreateTablePayload | UpdateTablePayload) => ({
-  ...(payload.tableNumber !== undefined ? { tableNumber: payload.tableNumber } : {}),
-  ...(payload.capacity !== undefined ? { capacity: payload.capacity } : {}),
-  ...(payload.status !== undefined ? { status: payload.status } : {}),
+const json = (body: unknown) => ({
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(body),
 });
 
-const normalizeReservationPayload = (payload: CreateReservationPayload | UpdateReservationPayload) => {
-  const customerName = payload.customerName ?? payload.customer_name;
-  const phoneNumber = payload.phoneNumber ?? payload.phone;
-  const reservationDate = payload.reservationDate ?? toDateTime(payload.reservation_date, payload.reservationTime ?? payload.reservation_time);
-  const guestCount = payload.guestCount ?? payload.guest_count;
-  const tableId = payload.tableId ?? payload.table_id;
-
-  return {
-    ...(customerName !== undefined ? { customerName } : {}),
-    ...(phoneNumber !== undefined ? { phoneNumber } : {}),
-    ...(reservationDate ? { reservationDate } : {}),
-    ...(guestCount !== undefined ? { guestCount } : {}),
-    ...(payload.note !== undefined ? { note: payload.note } : {}),
-    ...(tableId !== undefined ? { tableId } : {}),
-    ...(payload.source !== undefined ? { source: payload.source } : {}),
-    ...(payload.status !== undefined ? { status: payload.status } : {}),
-  };
-};
-
+// ── API surface ────────────────────────────────────────────────────────────
 export const api = {
+  // Tables
   async getTables(params: TableQuery = {}) {
-    const search = new URLSearchParams();
-
-    if (params.status) {
-      search.set("status", params.status);
-    }
-
-    if (params.reservationDate) {
-      search.set("reservationDate", params.reservationDate);
-    }
-
-    if (params.date) {
-      search.set("date", params.date);
-    }
-
-    if (params.time) {
-      search.set("time", params.time);
-    }
-
-    const query = search.toString();
-
-    return requestJson<{
-      tables: TableRecord[];
-      availableTableIds: number[];
-      requestedSlot: string | null;
-    }>(`/api/tables${query ? `?${query}` : ""}`);
+    const q = new URLSearchParams();
+    if (params.date) q.set("date", params.date);
+    if (params.time) q.set("time", params.time);
+    const qs = q.toString();
+    return requestJson<{ tables: TableRecord[]; availableTableIds: string[]; requestedSlot: string | null }>(
+      `/api/tables${qs ? `?${qs}` : ""}`,
+    );
   },
 
-  async createTable(payload: CreateTablePayload) {
-    return requestJson<{
-      success: true;
-      table: TableRecord;
-    }>("/api/tables", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(normalizeTablePayload(payload)),
-    });
-  },
-
-  async updateTable(id: number, payload: UpdateTablePayload) {
-    return requestJson<{
-      success: true;
-      table: TableRecord;
-    }>(`/api/tables/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(normalizeTablePayload(payload)),
-    });
-  },
-
-  async deleteTable(id: number) {
-    return requestJson<{ success: true; id: number }>(`/api/tables/${id}`, {
-      method: "DELETE",
-    });
-  },
-
+  // Reservations
   async getReservations(params: ReservationQuery = {}) {
-    const search = new URLSearchParams();
+    const q = new URLSearchParams();
+    if (params.page)    q.set("page",    String(params.page));
+    if (params.limit)   q.set("limit",   String(params.limit));
+    if (params.date)    q.set("date",    params.date);
+    if (params.search)  q.set("search",  params.search);
+    if (params.status)  q.set("status",  params.status);
+    if (params.source)  q.set("source",  params.source);
+    if (params.tableId) q.set("tableId", params.tableId);
+    const qs = q.toString();
 
-    if (params.page) {
-      search.set("page", String(params.page));
-    }
+    const result = await requestJson<{ data: ReservationRecord[]; meta: { page: number; limit: number; total: number; totalPages: number } }>(
+      `/api/reservations${qs ? `?${qs}` : ""}`,
+    );
+    return { reservations: result.data, meta: result.meta };
+  },
 
-    if (params.limit) {
-      search.set("limit", String(params.limit));
-    }
-
-    if (params.date) {
-      search.set("date", params.date);
-    }
-
-    if (params.search) {
-      search.set("search", params.search);
-    }
-
-    if (params.status) {
-      search.set("status", params.status);
-    }
-
-    if (params.source) {
-      search.set("source", params.source);
-    }
-
-    if (params.tableId) {
-      search.set("tableId", String(params.tableId));
-    }
-
-    const query = search.toString();
-
-    return requestJson<{
-      reservations: ReservationRecord[];
-      meta: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-      };
-    }>(`/api/reservations${query ? `?${query}` : ""}`);
+  async getReservation(id: string) {
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}`);
   },
 
   async createReservation(payload: CreateReservationPayload) {
-    return requestJson<{
-      success: true;
-      reservation: ReservationRecord;
-    }>("/api/reservations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(normalizeReservationPayload(payload)),
-    });
+    return requestJson<{ reservation: ReservationRecord }>(
+      "/api/reservations",
+      { ...json(payload), method: "POST" },
+    );
   },
 
-  async updateReservation(id: number, payload: UpdateReservationPayload) {
-    return requestJson<{
-      success: true;
-      reservation: ReservationRecord;
-    }>(`/api/reservations/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(normalizeReservationPayload(payload)),
-    });
+  async updateReservation(id: string, payload: UpdateReservationPayload) {
+    return requestJson<{ reservation: ReservationRecord }>(
+      `/api/reservations/${id}`,
+      { ...json(payload), method: "PUT" },
+    );
   },
 
-  async deleteReservation(id: number) {
-    return requestJson<{ success: true; id: number }>(`/api/reservations/${id}`, {
-      method: "DELETE",
-    });
+  async deleteReservation(id: string) {
+    return requestJson<{ id: string }>(`/api/reservations/${id}`, { method: "DELETE" });
+  },
+
+  async confirmReservation(id: string) {
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/confirm`, { method: "POST" });
+  },
+
+  async cancelReservation(id: string) {
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/cancel`, { method: "POST" });
+  },
+
+  async checkInReservation(id: string) {
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/check-in`, { method: "POST" });
+  },
+
+  async completeReservation(id: string) {
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/complete`, { method: "POST" });
   },
 };

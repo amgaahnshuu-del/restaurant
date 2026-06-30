@@ -39,7 +39,7 @@ export default function LoginForm({ defaultEmail }: LoginFormProps) {
       submit: "Sign in to admin",
       submitting: "Signing in...",
       error: "Login failed.",
-      note: "Only admin users can access reservations.",
+      note: "Admin and staff access only.",
       back: "Back to site",
     },
     mn: {
@@ -50,7 +50,7 @@ export default function LoginForm({ defaultEmail }: LoginFormProps) {
       submit: "Админаар нэвтрэх",
       submitting: "Нэвтэрч байна...",
       error: "Нэвтрэхэд алдаа гарлаа.",
-      note: "Зөвхөн админ хэрэглэгчид захиалгын хэсэгт нэвтэрнэ.",
+      note: "Зөвхөн админ болон ажилтнууд нэвтэрнэ.",
       back: "Сайт руу буцах",
     },
   }[language];

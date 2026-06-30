@@ -6,31 +6,31 @@ import { Sparkles, Award, Wine, Coffee } from "lucide-react";
 
 const team = [
   { 
-    image: "/chef/huslen.jpg", 
-    name: "Б. Батболд", 
-    nameEn: "B. Batbold",
-    role: "Ерөнхий тогооч", 
-    roleEn: "Executive Chef",
+    image: "/chef/minii-zahiral.jpg", 
+    name: "Г. Түмэнбаатар", 
+    nameEn: "G. Tumenbaatar",
+    role: "Үүсгэн байгуулагч", 
+    roleEn: "Founder",
     desc: "15 жилийн олон улсын туршлагатай, Франц, Японд суралцсан",
     descEn: "15 years of international experience, trained in France and Japan",
     icon: Award
   },
   { 
-    image: chef2, 
-    name: "О. Сарангэрэл", 
-    nameEn: "O. Sarangerel",
-    role: "Дэд тогооч", 
-    roleEn: "Pastry Chef",
+    image: "/chef/huslen.jpg", 
+    name: "О. Хүслэн", 
+    nameEn: "O. Huslen",
+    role: "Ахлах тогооч", 
+    roleEn: "Head Chef",
     desc: "Амттан болон зуушны мэргэжилтэн, Италид мэргэшсэн",
     descEn: "Pastry and dessert specialist, specialized in Italy",
     icon: Coffee
   },
   { 
-    image: chef3, 
-    name: "Д. Ганбаатар", 
-    nameEn: "D. Ganbaatar",
-    role: "Сомелье", 
-    roleEn: "Sommelier",
+    image: "/chef/sonin-al.jpg", 
+    name: "М. МөнхТэмүүлэн", 
+    nameEn: "M. MunkhTemuulen",
+    role: "Бартендер", 
+    roleEn: "Bartender",
     desc: "Дэлхийн 500+ дарсны мэдлэгтэй, WSET сертификаттай",
     descEn: "Knowledge of 500+ wines from around the world, WSET certified",
     icon: Wine
@@ -152,7 +152,7 @@ const TeamSection = () => {
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
               <span className="font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-amber-700 dark:text-amber-400">
-                {language === 'en' ? 'Michelin Star Experience' : 'Мишлен Оддын Туршлага'}
+                {language === 'en' ? 'Michelin Star Experience' : 'чадварлаг туршлага'}
               </span>
             </div>
             <div className="hidden sm:block w-px h-6 bg-amber-600/30" />

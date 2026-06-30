@@ -7,27 +7,31 @@ import LoginForm from "@/app/login/LoginForm"
 import CustomerLoginForm from "@/app/account/login/CustomerLoginForm"
 import { useLanguage } from "@/contexts/LanguageContext"
 
-type Role = "customer" | "admin"
+type Role = "customer" | "admin" | "staff"
 
 const copy = {
   en: {
-    eyebrow: "One login for customers and admins",
+    eyebrow: "One login for customers, staff, and admins",
     title: "Sign in",
     description:
-      "Choose your access level below. Customers can manage reservations, and admins can manage the floor.",
+      "Choose your access level below. Customers manage reservations, staff handle operations, and admins manage the floor.",
     customer: "Customer",
+    staff: "Staff",
     admin: "Admin",
     customerHint: "Book tables, review reservations, and manage your profile.",
+    staffHint: "Handle walk-ins, phone bookings, and guest check-ins.",
     adminHint: "Review bookings and manage restaurant operations.",
   },
   mn: {
-    eyebrow: "Үйлчлүүлэгч болон админ нэг нэвтрэлттэй",
+    eyebrow: "Үйлчлүүлэгч, ажилтан болон админ нэг нэвтрэлттэй",
     title: "Нэвтрэх",
     description:
-      "Доороос өөрийн эрхээ сонгоно уу. Үйлчлүүлэгч захиалгаа, админ танхимаа удирдана.",
+      "Доороос өөрийн эрхээ сонгоно уу. Үйлчлүүлэгч захиалгаа, ажилтан үйл ажиллагааг, админ танхимаа удирдана.",
     customer: "Хэрэглэгч",
+    staff: "Ажилтан",
     admin: "Админ",
     customerHint: "Ширээ захиалж, захиалгаа шалгаж, профайлаа удирдана.",
+    staffHint: "Walk-in, утасны захиалга болон зочдын бүртгэлийг хийнэ.",
     adminHint: "Захиалгыг шалгаж, рестораны ажиллагааг удирдана.",
   },
 } as const
@@ -37,11 +41,13 @@ const AuthLoginSwitcher = () => {
   const searchParams = useSearchParams()
   const roleParam = searchParams.get("role")
   const defaultEmail = searchParams.get("email") || ""
-  const [role, setRole] = useState<Role>(roleParam === "admin" ? "admin" : "customer")
+  const [role, setRole] = useState<Role>(
+    roleParam === "admin" ? "admin" : roleParam === "staff" ? "staff" : "customer"
+  )
   const content = copy[language]
 
   useEffect(() => {
-    if (roleParam === "admin" || roleParam === "customer") {
+    if (roleParam === "admin" || roleParam === "staff" || roleParam === "customer") {
       setRole(roleParam)
     }
   }, [roleParam])
@@ -76,6 +82,17 @@ const AuthLoginSwitcher = () => {
             </button>
             <button
               type="button"
+              onClick={() => setRole("staff")}
+              className={`rounded-full border px-5 py-2.5 font-sans text-[11px] uppercase tracking-[0.24em] transition ${
+                role === "staff"
+                  ? "border-primary/30 bg-primary text-primary-foreground shadow-[0_12px_24px_hsl(40_60%_50%/.18)]"
+                  : "border-border/70 bg-white/70 text-foreground hover:border-primary/25 hover:text-primary dark:border-white/10 dark:bg-white/[0.04]"
+              }`}
+            >
+              {content.staff}
+            </button>
+            <button
+              type="button"
               onClick={() => setRole("admin")}
               className={`rounded-full border px-5 py-2.5 font-sans text-[11px] uppercase tracking-[0.24em] transition ${
                 role === "admin"
@@ -88,7 +105,9 @@ const AuthLoginSwitcher = () => {
           </div>
 
           <div className="mt-5 rounded-[24px] border border-primary/10 bg-primary/[0.04] px-5 py-4 text-center">
-            <p className="text-sm font-medium text-foreground">{role === "customer" ? content.customerHint : content.adminHint}</p>
+            <p className="text-sm font-medium text-foreground">
+              {role === "customer" ? content.customerHint : role === "staff" ? content.staffHint : content.adminHint}
+            </p>
           </div>
 
           <div className="mt-8">

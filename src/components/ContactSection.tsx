@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { Clock, Mail, MapPin, Phone, Sparkles, ExternalLink } from "lucide-react";
-import exterior1 from "@/assets/exterior-1.jpg";
 import exterior2 from "@/assets/exterior-2.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -212,32 +211,57 @@ const ContactSection = () => {
           </div>
           
           <div className="grid gap-4 sm:gap-5 md:gap-6 grid-cols-1 sm:grid-cols-2">
-            {[exterior1, exterior2].map((image, index) => (
-              <motion.div
-                key={image}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -8 }}
-                className="group overflow-hidden rounded-xl sm:rounded-2xl border-2 border-amber-600/20 dark:border-amber-500/20 bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg hover:border-amber-600/40 dark:hover:border-amber-500/40 transition-all duration-500"
-              >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={image}
-                    alt={`${copy.exteriorAlt} ${index + 1}`}
-                    className="aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-2 group-hover:translate-y-0">
-                    <span className="text-white font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.2em] bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
-                      {copy.openHours}
-                    </span>
-                  </div>
+            {/* Video — outside.mov */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -8 }}
+              className="group overflow-hidden rounded-xl sm:rounded-2xl border-2 border-amber-600/20 dark:border-amber-500/20 bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg hover:border-amber-600/40 dark:hover:border-amber-500/40 transition-all duration-500"
+            >
+              <div className="relative overflow-hidden">
+                <video
+                  src="/outside.mov"
+                  className="aspect-video w-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-2 group-hover:translate-y-0">
+                  <span className="text-white font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.2em] bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+                    {copy.openHours}
+                  </span>
                 </div>
-              </motion.div>
-            ))}
+              </div>
+            </motion.div>
+
+            {/* Image — exterior2 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              whileHover={{ y: -8 }}
+              className="group overflow-hidden rounded-xl sm:rounded-2xl border-2 border-amber-600/20 dark:border-amber-500/20 bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg hover:border-amber-600/40 dark:hover:border-amber-500/40 transition-all duration-500"
+            >
+              <div className="relative overflow-hidden">
+                <img
+                  src={exterior2}
+                  alt={`${copy.exteriorAlt} 2`}
+                  className="aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-2 group-hover:translate-y-0">
+                  <span className="text-white font-sans text-[10px] sm:text-[11px] uppercase tracking-[0.2em] bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+                    {copy.openHours}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </motion.div>
 

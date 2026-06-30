@@ -7,76 +7,95 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
 enum TableStatus {
-  available
-  reserved
-  occupied
+  AVAILABLE
+  RESERVED
+  OCCUPIED
 }
 
 enum ReservationSource {
-  website
-  walk_in
-  phone
+  WEBSITE
+  WALK_IN
+  PHONE
 }
 
 enum ReservationStatus {
-  pending
-  confirmed
-  cancelled
-  completed
-}
-
-enum UserRole {
-  admin
-  customer
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  email         String        @unique @db.VarChar(191)
-  passwordHash  String        @map("password_hash") @db.VarChar(255)
-  name          String?       @db.VarChar(100)
-  phone         String?       @db.VarChar(20)
-  role          UserRole      @default(customer)
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
-  reservations  Reservation[]
+  id           String        @id @default(cuid())
+  name         String        @db.VarChar(100)
+  email        String        @unique @db.VarChar(191)
+  password     String        @db.VarChar(255)
+  role         UserRole      @default(CUSTOMER)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  reservations Reservation[]
 
   @@map("users")
 }
 
 model Table {
-  id           Int            @id @default(autoincrement())
-  tableNumber  Int            @unique @map("table_number")
+  id           String        @id @default(cuid())
+  tableNumber  Int           @unique @map("table_number")
   capacity     Int
-  status       TableStatus    @default(available)
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
+  status       TableStatus   @default(AVAILABLE)
+  createdAt    DateTime      @default(now()) @map("created_at")
   reservations Reservation[]
 
   @@map("tables")
 }
 
 model Reservation {
-  id               Int               @id @default(autoincrement())
-  customerName     String            @map("customer_name") @db.VarChar(100)
-  phoneNumber      String            @map("phone_number") @db.VarChar(20)
-  reservationDate  DateTime          @map("reservation_date")
-  guestCount       Int               @map("guest_count")
-  note             String?           @db.Text
-  tableId          Int               @map("table_id")
-  source           ReservationSource @default(website)
-  status           ReservationStatus @default(pending)
-  userId           Int?              @map("user_id")
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @updatedAt @map("updated_at")
-  table            Table             @relation(fields: [tableId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id              String              @id @default(cuid())
+  userId          String?             @map("user_id")
+  tableId         String              @map("table_id")
+  customerName    String              @map("customer_name") @db.VarChar(100)
+  phone           String              @db.VarChar(20)
+  guestCount      Int                 @map("guest_count")
+  reservationDate DateTime            @map("reservation_date")
+  startTime       DateTime            @map("start_time")
+  endTime         DateTime            @map("end_time")
+  source          ReservationSource   @default(WEBSITE)
+  status          ReservationStatus   @default(PENDING)
+  note            String?             @db.Text
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  deletedAt       DateTime?           @map("deleted_at")
+  user            User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  table           Table               @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  history         ReservationHistory[]
 
-  @@index([reservationDate, status], map: "idx_reservation_date_status")
-  @@index([tableId, reservationDate, status], map: "idx_table_date_status")
-  @@index([phoneNumber, status], map: "idx_phone_status")
-  @@index([userId, reservationDate, status], map: "idx_user_date_status")
-  @@index([source, status], map: "idx_source_status")
+  @@index([tableId, startTime, endTime])
+  @@index([userId, reservationDate])
+  @@index([status, reservationDate])
+  @@index([source, status])
+  @@index([deletedAt])
   @@map("reservations")
+}
+
+model ReservationHistory {
+  id              String             @id @default(cuid())
+  reservationId   String             @map("reservation_id")
+  action          String             @db.VarChar(50)
+  previousStatus  ReservationStatus? @map("previous_status")
+  newStatus       ReservationStatus? @map("new_status")
+  performedBy     String             @map("performed_by")
+  performedByRole UserRole           @map("performed_by_role")
+  note            String?            @db.Text
+  createdAt       DateTime           @default(now()) @map("created_at")
+  reservation     Reservation        @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+  @@map("reservation_history")
 }

@@ -126,7 +126,7 @@ const HeroSection = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-4 lg:gap-6">
+            <div className="hidden md:flex items-center gap-4 lg:gap-6 ">
               {copy.navItems.map((item) => (
                 item.href === "/reservation" ? (
                   <a
