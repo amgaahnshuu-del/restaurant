@@ -15,17 +15,28 @@ const devCredentials =
       }
     : null;
 
-export default async function CustomerLoginPage() {
+export default async function CustomerLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
   const cookieStore = await cookies();
   const user = await resolveAuthUser(cookieStore.get(AUTH_COOKIE_NAME)?.value);
   const language = resolveLanguage(cookieStore.get(LANGUAGE_COOKIE_NAME)?.value);
+
+  // Only allow same-site relative redirects (avoids open-redirect).
+  const { redirect: redirectParam } = await searchParams;
+  const safeRedirect =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : undefined;
 
   if (user?.role === "ADMIN") {
     redirect("/admin/reservations");
   }
 
   if (user?.role === "CUSTOMER") {
-    redirect("/");
+    redirect(safeRedirect || "/");
   }
 
   const copy = {
@@ -154,7 +165,7 @@ export default async function CustomerLoginPage() {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            <CustomerLoginForm defaultEmail="" />
+            <CustomerLoginForm defaultEmail="" redirectTo={safeRedirect} />
             
             {/* Divider */}
             <div className="relative">

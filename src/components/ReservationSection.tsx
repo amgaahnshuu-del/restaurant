@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { CalendarDays, CircleCheckBig, Clock3, LoaderCircle, MapPin, Phone, Sparkles, Users, Star, CheckCircle2, CreditCard, Shield, Coffee, QrCode, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -40,6 +41,7 @@ const isDateWithinWindow = (value: string) => {
 
 const ReservationSection = () => {
   const { language } = useLanguage();
+  const router = useRouter();
   const [tables, setTables] = useState<TableRecord[]>([]);
   const [reservationDate, setReservationDate] = useState(getTodayValue);
   const [reservationTime, setReservationTime] = useState("19:00");
@@ -86,6 +88,7 @@ const ReservationSection = () => {
       errorTitle: "Reservation Failed",
       serviceOffline: "Service temporarily unavailable",
       serviceUnavailable: "Unable to connect to reservation service",
+      loginRequired: "Please sign in to complete your reservation.",
       tableLabel: (table: TableRecord) => `Table ${table.tableNumber}`,
       capacityLabel: (table: TableRecord) => `Seats ${table.capacity_label}`,
       selectedSlot: (date: string, time: string) => `${date} at ${time}`,
@@ -141,6 +144,7 @@ const ReservationSection = () => {
       errorTitle: "Захиалга амжилтгүй",
       serviceOffline: "Үйлчилгээ түр ажиллахгүй байна",
       serviceUnavailable: "Захиалгын системд холбогдож чадсангүй",
+      loginRequired: "Захиалгаа хийхийн тулд нэвтэрнэ үү.",
       tableLabel: (table: TableRecord) => `${table.tableNumber}-р ширээ`,
       capacityLabel: (table: TableRecord) => `${table.capacity_label} хүний суудал`,
       selectedSlot: (date: string, time: string) => `${date} ${time}`,
@@ -239,19 +243,14 @@ const ReservationSection = () => {
     return () => clearInterval(interval);
   }, [payment?.reservationId, payment?.status]);
 
-  // React to a confirmed payment: celebrate, reset the form, refresh tables.
+  // On confirmed payment, show a success toast and go straight to the account page.
   useEffect(() => {
     if (payment?.status !== "PAID") return;
     toast({
       title: copy.paidTitle,
       description: paymentTableNumber ? copy.paidBody(paymentTableNumber) : copy.paidTitle,
     });
-    setCustomerName("");
-    setPhoneNumber("");
-    setGuestCount("2");
-    setNote("");
-    setSelectedTableId(null);
-    void loadTables();
+    router.push("/account");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payment?.status]);
 
@@ -277,6 +276,16 @@ const ReservationSection = () => {
     setIsSubmitting(true);
 
     try {
+      // A website reservation requires a signed-in customer — send guests to login.
+      const authed = await fetch("/api/auth/me")
+        .then((res) => res.ok)
+        .catch(() => false);
+      if (!authed) {
+        toast({ title: copy.errorTitle, description: copy.loginRequired });
+        router.push("/account/login?redirect=/reservation");
+        return;
+      }
+
       const { reservation } = await api.createReservation({
         customerName: customerName.trim(),
         phone: phoneNumber.trim(),

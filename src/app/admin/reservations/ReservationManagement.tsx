@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { LoaderCircle, MapPin, Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CalendarClock, Clock, LoaderCircle, MapPin, Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { api, type ReservationRecord, type ReservationStatusValue, type ReservationSourceValue, type TableRecord } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
@@ -10,6 +10,16 @@ import RestaurantFloorMap from "@/components/RestaurantFloorMap";
 const getTodayValue = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+// Business hours & fixed 2-hour slots (mirrors backend config defaults).
+const OPEN_HOUR = 10;
+const CLOSE_HOUR = 22;
+const SLOT_HOURS = 2;
+const pad = (n: number) => String(n).padStart(2, "0");
+const fmtTime = (iso: string) => {
+  const d = new Date(iso);
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
 };
 
 const statusTone: Record<ReservationStatusValue, string> = {
@@ -63,6 +73,15 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
   const [tableIdFilter,     setTableIdFilter]     = useState<string | null>(null);
   const [filteredTableNum,  setFilteredTableNum]  = useState<number | null>(null);
 
+  // Table schedule modal state
+  const [scheduleTable,   setScheduleTable]   = useState<TableRecord | null>(null);
+  const [scheduleRes,     setScheduleRes]     = useState<ReservationRecord[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Which section (tab) is visible.
+  const [activeTab, setActiveTab] = useState<"floor" | "new" | "list">("floor");
+
   const allowedSources: ReservationSourceValue[] = isAdmin
     ? ["WALK_IN", "PHONE", "WEBSITE"]
     : ["WALK_IN", "PHONE"];
@@ -71,6 +90,22 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
     () => tables.filter((t) => t.availableForRequestedSlot),
     [tables],
   );
+
+  // Booked reservations + free 2-hour slots for the schedule modal's table/date.
+  const scheduleView = useMemo(() => {
+    const toDec = (iso: string) => {
+      const d = new Date(iso);
+      return d.getUTCHours() + d.getUTCMinutes() / 60;
+    };
+    const active = scheduleRes.filter((r) => r.status !== "CANCELLED");
+    const booked = [...active].sort((a, b) => toDec(a.startTime) - toDec(b.startTime));
+    const blocks: { start: number; end: number; free: boolean }[] = [];
+    for (let h = OPEN_HOUR; h + SLOT_HOURS <= CLOSE_HOUR; h += SLOT_HOURS) {
+      const busy = active.some((r) => toDec(r.startTime) < h + SLOT_HOURS && toDec(r.endTime) > h);
+      blocks.push({ start: h, end: h + SLOT_HOURS, free: !busy });
+    }
+    return { booked, blocks };
+  }, [scheduleRes]);
 
   const loadTables = async () => {
     setIsLoadingTbl(true);
@@ -119,6 +154,7 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
 
   const handleEdit = (r: ReservationRecord) => {
     setEditingId(r.id);
+    setActiveTab("new"); // show the form when editing from the list
     const d = new Date(r.startTime);
     const hh = String(d.getUTCHours()).padStart(2, "0");
     const mm = String(d.getUTCMinutes()).padStart(2, "0");
@@ -194,25 +230,35 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
 
   const setFilter = <T,>(setter: (v: T) => void, value: T) => { setPage(1); setter(value); };
 
-  // Floor map: click handler
-  const handleFloorSelect = (tableId: string) => {
+  // Floor map click → open the table's daily schedule modal
+  const openSchedule = async (tableId: string) => {
     const table = tables.find((t) => t.id === tableId);
     if (!table) return;
-
-    if (table.availableForRequestedSlot) {
-      // Available → pre-select in the booking form
-      setForm((f) => ({ ...f, tableId }));
-      setFloorSelectedId(tableId);
-      setTableIdFilter(null);
-      setFilteredTableNum(null);
-    } else {
-      // Reserved → toggle reservation list filter for that table
-      const isAlreadySelected = tableIdFilter === tableId;
-      setFloorSelectedId(isAlreadySelected ? null : tableId);
-      setTableIdFilter(isAlreadySelected ? null : tableId);
-      setFilteredTableNum(isAlreadySelected ? null : table.tableNumber);
-      setPage(1);
+    setScheduleTable(table);
+    setLoadingSchedule(true);
+    try {
+      const data = await api.getReservations({ date: form.reservationDate, tableId, limit: 100 });
+      setScheduleRes(data.reservations);
+    } catch (err) {
+      toast({ title: "Unable to load schedule", description: String(err), variant: "destructive" });
+      setScheduleRes([]);
+    } finally {
+      setLoadingSchedule(false);
     }
+  };
+
+  const closeSchedule = () => {
+    setScheduleTable(null);
+    setScheduleRes([]);
+  };
+
+  // Free-slot click → prefill the booking form with this table + time, then jump to it
+  const pickSlot = (startHour: number) => {
+    if (!scheduleTable) return;
+    setForm((f) => ({ ...f, tableId: scheduleTable.id, startTime: `${pad(startHour)}:00` }));
+    setFloorSelectedId(scheduleTable.id);
+    closeSchedule();
+    setActiveTab("new"); // jump to the booking form
   };
 
   const clearTableFilter = () => {
@@ -227,14 +273,36 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* ── Tabs ── */}
+      <div className="flex flex-wrap gap-1.5 rounded-full border border-primary/10 bg-white/5 p-1.5">
+        {([
+          { key: "floor", label: "Floor plan" },
+          { key: "new",   label: editingId ? "Edit reservation" : "New reservation" },
+          { key: "list",  label: "Reservations" },
+        ] as const).map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setActiveTab(t.key)}
+            className={`flex-1 whitespace-nowrap rounded-full px-4 py-2.5 font-sans text-[11px] uppercase tracking-[0.2em] transition ${
+              activeTab === t.key
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       {/* ── Floor Plan ── */}
+      {activeTab === "floor" && (
       <div className="rounded-[2rem] border border-primary/10 bg-white/10 p-6 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="font-sans text-[11px] uppercase tracking-[0.24em] text-primary/70">Floor plan</div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {form.reservationDate} · {form.startTime} — click a table to book it or view its reservations
+              {form.reservationDate} — click a table to see its booked & free times
             </p>
           </div>
           {filteredTableNum && (
@@ -259,7 +327,7 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
           <RestaurantFloorMap
             tables={tables}
             selectedTableId={floorHighlightId}
-            onSelect={handleFloorSelect}
+            onSelect={openSchedule}
             allowReservedClick
           />
         ) : (
@@ -268,10 +336,11 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
           </p>
         )}
       </div>
+      )}
 
-      <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        {/* ── Create / Edit form ── */}
-        <div className="rounded-[2rem] border border-primary/10 bg-white/10 p-6 shadow-sm">
+      {/* ── New / Edit reservation ── */}
+      {activeTab === "new" && (
+        <div ref={formRef} className="rounded-[2rem] border border-primary/10 bg-white/10 p-6 shadow-sm">
           <div className="font-sans text-[11px] uppercase tracking-[0.24em] text-primary/70">
             {editingId ? "Edit reservation" : "New reservation"}
           </div>
@@ -363,8 +432,10 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
             </button>
           </div>
         </div>
+      )}
 
-        {/* ── Reservation list ── */}
+      {/* ── Reservations list ── */}
+      {activeTab === "list" && (
         <div className="rounded-[2rem] border border-primary/10 bg-white/10 p-6 shadow-sm">
           {/* Filter header */}
           {filteredTableNum ? (
@@ -525,7 +596,102 @@ export default function ReservationManagement({ isAdmin = true }: Props) {
             </div>
           </div>
         </div>
-      </section>
+      )}
+
+      {/* ── Table schedule modal ── */}
+      {scheduleTable && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={closeSchedule}
+        >
+          <div
+            className="relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-[2rem] border border-primary/20 bg-neutral-950 p-6 sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeSchedule}
+              className="absolute right-5 top-5 text-muted-foreground transition hover:text-foreground"
+              aria-label="Close"
+            >
+              <X className="size-5" />
+            </button>
+
+            <div className="font-sans text-[11px] uppercase tracking-[0.24em] text-primary/70">
+              Table {scheduleTable.tableNumber} · {scheduleTable.capacity_label}
+            </div>
+            <h3 className="mt-1 flex items-center gap-2 text-2xl text-foreground">
+              <CalendarClock className="size-5 text-primary/70" />
+              {form.reservationDate}
+            </h3>
+
+            {loadingSchedule ? (
+              <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
+                <LoaderCircle className="size-5 animate-spin" />
+                <span className="text-sm">Loading schedule…</span>
+              </div>
+            ) : (
+              <>
+                {/* Booked times */}
+                <div className="mt-6">
+                  <div className="mb-2 font-sans text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                    Reserved times
+                  </div>
+                  {scheduleView.booked.length ? (
+                    <div className="space-y-2">
+                      {scheduleView.booked.map((r) => (
+                        <div
+                          key={r.id}
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 px-4 py-2.5"
+                        >
+                          <div className="flex items-center gap-2 text-sm text-foreground">
+                            <Clock className="size-4 text-red-300/80" />
+                            {fmtTime(r.startTime)}–{fmtTime(r.endTime)}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{r.customerName}</span>
+                            <Badge className={`border ${statusTone[r.status]}`}>{r.status}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No reservations yet for this day.</p>
+                  )}
+                </div>
+
+                {/* Free slots */}
+                <div className="mt-6">
+                  <div className="mb-2 font-sans text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                    Free slots — click to book
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {scheduleView.blocks.map((b) =>
+                      b.free ? (
+                        <button
+                          key={b.start}
+                          type="button"
+                          onClick={() => pickSlot(b.start)}
+                          className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-medium text-emerald-200 transition hover:bg-emerald-500/20"
+                        >
+                          {pad(b.start)}:00–{pad(b.end)}:00
+                        </button>
+                      ) : (
+                        <div
+                          key={b.start}
+                          className="rounded-2xl border border-border/40 bg-background/40 px-3 py-2.5 text-center text-sm text-muted-foreground/50 line-through"
+                        >
+                          {pad(b.start)}:00–{pad(b.end)}:00
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

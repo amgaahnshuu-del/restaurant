@@ -12,6 +12,7 @@ import { translateApiMessage } from "@/lib/language";
 
 type CustomerLoginFormProps = {
   defaultEmail: string;
+  redirectTo?: string;
 };
 
 const readErrorMessage = async (response: Response, language: "en" | "mn") => {
@@ -23,7 +24,7 @@ const readErrorMessage = async (response: Response, language: "en" | "mn") => {
   }
 };
 
-export default function CustomerLoginForm({ defaultEmail }: CustomerLoginFormProps) {
+export default function CustomerLoginForm({ defaultEmail, redirectTo }: CustomerLoginFormProps) {
   const { language } = useLanguage();
   const router = useRouter();
   const [email, setEmail] = useState(defaultEmail);
@@ -79,7 +80,7 @@ export default function CustomerLoginForm({ defaultEmail }: CustomerLoginFormPro
       }
 
       const data = (await response.json()) as { redirectTo?: string };
-      router.replace(data.redirectTo || "/");
+      router.replace(redirectTo || data.redirectTo || "/");
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : copy.error);
