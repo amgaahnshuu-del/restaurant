@@ -1,6 +1,7 @@
 import { tableRepository } from "@server/repositories/table.repository";
 import { prisma } from "@/lib/prisma";
 import { ConflictError, NotFoundError } from "@/lib/errors";
+import { config } from "@/lib/config";
 import type { CreateTableInput, UpdateTableInput } from "@/lib/schemas";
 
 export const tableService = {
@@ -29,7 +30,7 @@ export const tableService = {
     const slotStart = new Date(
       `${date}T${String(h).padStart(2, "0")}:${String(m ?? 0).padStart(2, "0")}:00.000Z`,
     );
-    const slotEnd = new Date(slotStart.getTime() + 2 * 3_600_000);
+    const slotEnd = new Date(slotStart.getTime() + config.reservation.durationMinutes * 60_000);
 
     const overlapping = await prisma.reservation.findMany({
       where: {

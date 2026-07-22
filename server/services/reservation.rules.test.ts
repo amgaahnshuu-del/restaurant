@@ -47,10 +47,10 @@ describe("reservation state machine", () => {
 });
 
 describe("buildTimes", () => {
-  it("builds a 2-hour UTC window from date + time", () => {
+  it("builds a 1-hour UTC window from date + time", () => {
     const { startTime, endTime } = buildTimes("2026-07-25", "19:00");
     expect(startTime.toISOString()).toBe("2026-07-25T19:00:00.000Z");
-    expect(endTime.toISOString()).toBe("2026-07-25T21:00:00.000Z");
+    expect(endTime.toISOString()).toBe("2026-07-25T20:00:00.000Z");
   });
 
   it("handles minutes", () => {
@@ -78,7 +78,7 @@ describe("validateBusinessHours (10:00–22:00)", () => {
   });
 
   it("rejects an end after closing", () => {
-    const { startTime, endTime } = buildTimes("2026-07-25", "21:30"); // ends 23:30
+    const { startTime, endTime } = buildTimes("2026-07-25", "21:30"); // ends 22:30
     expect(() => validateBusinessHours(startTime, endTime)).toThrow(/closing/i);
   });
 });

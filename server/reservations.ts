@@ -8,7 +8,7 @@ import type {
 } from "@prisma/client";
 import { z } from "zod";
 
-export const DEFAULT_RESERVATION_DURATION_HOURS = 2;
+export const DEFAULT_RESERVATION_DURATION_HOURS = 1;
 
 export const reservationHours = new Set([
   "10",
