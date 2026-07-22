@@ -33,6 +33,14 @@ enum ReservationStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+}
+
 model User {
   id           String        @id @default(cuid())
   name         String        @db.VarChar(100)
@@ -75,6 +83,7 @@ model Reservation {
   user            User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
   table           Table               @relation(fields: [tableId], references: [id], onDelete: Restrict)
   history         ReservationHistory[]
+  payment         Payment?
 
   @@index([tableId, startTime, endTime])
   @@index([userId, reservationDate])
@@ -82,6 +91,27 @@ model Reservation {
   @@index([source, status])
   @@index([deletedAt])
   @@map("reservations")
+}
+
+model Payment {
+  id             String        @id @default(cuid())
+  reservationId  String        @unique @map("reservation_id")
+  amount         Int                                        // minor unit not used; whole MNT
+  currency       String        @default("MNT") @db.VarChar(8)
+  provider       String        @default("QPAY") @db.VarChar(16)
+  status         PaymentStatus @default(PENDING)
+  sandbox        Boolean       @default(false)
+  qpayInvoiceId  String?       @map("qpay_invoice_id")
+  qrText         String?       @map("qr_text") @db.Text
+  qrImage        String?       @map("qr_image") @db.Text
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  reservation    Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([qpayInvoiceId])
+  @@map("payments")
 }
 
 model ReservationHistory {

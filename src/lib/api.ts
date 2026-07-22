@@ -23,6 +23,20 @@ export type ReservationUserRecord = {
   email: string;
 };
 
+export type PaymentStatusValue = "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED";
+
+export type PaymentRecord = {
+  id: string;
+  reservationId: string;
+  amount: number;
+  currency: string;
+  status: PaymentStatusValue;
+  sandbox: boolean;
+  qrText: string | null;
+  qrImage: string | null;
+  urls?: { name: string; link: string }[];
+};
+
 export type ReservationRecord = {
   id: string;
   customerName: string;
@@ -172,18 +186,37 @@ export const api = {
   },
 
   async confirmReservation(id: string) {
-    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/confirm`, { method: "POST" });
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/confirm`, { method: "PATCH" });
   },
 
   async cancelReservation(id: string) {
-    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/cancel`, { method: "POST" });
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/cancel`, { method: "PATCH" });
   },
 
   async checkInReservation(id: string) {
-    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/check-in`, { method: "POST" });
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/check-in`, { method: "PATCH" });
   },
 
   async completeReservation(id: string) {
-    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/complete`, { method: "POST" });
+    return requestJson<{ reservation: ReservationRecord }>(`/api/reservations/${id}/complete`, { method: "PATCH" });
+  },
+
+  // Payments (QPay)
+  async createReservationPayment(id: string) {
+    return requestJson<{ payment: PaymentRecord }>(
+      `/api/reservations/${id}/payment`,
+      { method: "POST" },
+    );
+  },
+
+  async getReservationPayment(id: string) {
+    return requestJson<{ payment: PaymentRecord }>(`/api/reservations/${id}/payment`);
+  },
+
+  async simulateReservationPayment(id: string) {
+    return requestJson<{ payment: PaymentRecord }>(
+      `/api/reservations/${id}/payment/simulate`,
+      { method: "POST" },
+    );
   },
 };

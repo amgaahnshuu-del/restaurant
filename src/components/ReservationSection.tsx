@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, CircleCheckBig, Clock3, LoaderCircle, MapPin, Phone, Sparkles, Users, Star, CheckCircle2, CreditCard, Shield, Coffee } from "lucide-react";
+import { CalendarDays, CircleCheckBig, Clock3, LoaderCircle, MapPin, Phone, Sparkles, Users, Star, CheckCircle2, CreditCard, Shield, Coffee, QrCode, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { api, type TableRecord } from "@/lib/api";
+import { api, type TableRecord, type PaymentRecord } from "@/lib/api";
 import RestaurantFloorMap from "@/components/RestaurantFloorMap";
+
+const formatMnt = (n: number) => `${n.toLocaleString("en-US")}₮`;
 
 const getDateValue = (offsetDays = 0) => {
   const date = new Date();
@@ -49,6 +51,9 @@ const ReservationSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serviceError, setServiceError] = useState<string | null>(null);
+  const [payment, setPayment] = useState<PaymentRecord | null>(null);
+  const [paymentTableNumber, setPaymentTableNumber] = useState<number | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   const copy = {
     en: {
@@ -93,7 +98,18 @@ const ReservationSection = () => {
         "Premium service",
         "Wine pairing available"
       ],
-      guarantee: "No booking fees",
+      guarantee: "50,000₮ booking deposit",
+      depositNote: "A 50,000₮ deposit via QPay confirms your table",
+      payTitle: "Complete Payment",
+      payBody: "Scan the QR with any banking app to pay the deposit.",
+      paySandbox: "Sandbox mode — no real charge is made.",
+      amountLabel: "Amount to pay",
+      simulatePay: "Simulate payment (test)",
+      waitingPay: "Waiting for payment…",
+      paidTitle: "Payment received!",
+      paidBody: (tableNumber: number) => `Table ${tableNumber} is confirmed. See you soon!`,
+      closeLabel: "Close",
+      payHint: "Your table is held for 30 minutes until payment.",
     },
     mn: {
       kicker: "Захиалга",
@@ -137,7 +153,18 @@ const ReservationSection = () => {
         "Өндөр түвшний үйлчилгээ",
         "Дарсны сонголт"
       ],
-      guarantee: "Нэмэлт төлбөргүй",
+      guarantee: "50,000₮ урьдчилгаа",
+      depositNote: "QPay-ээр 50,000₮ урьдчилгаа төлж ширээгээ баталгаажуулна",
+      payTitle: "Төлбөр төлөх",
+      payBody: "Дурын банкны аппаар QR кодыг уншуулж урьдчилгаагаа төлнө үү.",
+      paySandbox: "Sandbox горим — жинхэнэ төлбөр авахгүй.",
+      amountLabel: "Төлөх дүн",
+      simulatePay: "Төлбөр амлах (тест)",
+      waitingPay: "Төлбөр хүлээж байна…",
+      paidTitle: "Төлбөр амжилттай!",
+      paidBody: (tableNumber: number) => `${tableNumber}-р ширээ баталгаажлаа. Тэсэн ядан хүлээж байна!`,
+      closeLabel: "Хаах",
+      payHint: "Төлбөр хийх хүртэл ширээ 30 минут таны нэр дээр хадгалагдана.",
     },
   }[language];
 
@@ -197,6 +224,37 @@ const ReservationSection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reservationDate, reservationTime]);
 
+  // Poll payment status while the QR modal is open and still unpaid.
+  useEffect(() => {
+    if (!payment || payment.status !== "PENDING") return;
+    const reservationId = payment.reservationId;
+    const interval = setInterval(async () => {
+      try {
+        const { payment: latest } = await api.getReservationPayment(reservationId);
+        setPayment(latest);
+      } catch {
+        // transient — keep polling
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [payment?.reservationId, payment?.status]);
+
+  // React to a confirmed payment: celebrate, reset the form, refresh tables.
+  useEffect(() => {
+    if (payment?.status !== "PAID") return;
+    toast({
+      title: copy.paidTitle,
+      description: paymentTableNumber ? copy.paidBody(paymentTableNumber) : copy.paidTitle,
+    });
+    setCustomerName("");
+    setPhoneNumber("");
+    setGuestCount("2");
+    setNote("");
+    setSelectedTableId(null);
+    void loadTables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payment?.status]);
+
   const handleSubmit = async () => {
     if (!selectedTable) {
       toast({
@@ -219,28 +277,21 @@ const ReservationSection = () => {
     setIsSubmitting(true);
 
     try {
-      await api.createReservation({
+      const { reservation } = await api.createReservation({
         customerName: customerName.trim(),
         phone: phoneNumber.trim(),
         reservationDate,
-        startTime: combineDateAndTime(reservationDate, reservationTime),
+        startTime: reservationTime, // backend expects "HH:MM"
         guestCount: Number(guestCount),
         note: note.trim() || null,
         tableId: selectedTable.id,
         source: "WEBSITE",
       });
 
-      toast({
-        title: copy.successTitle,
-        description: copy.successBody(selectedTable.tableNumber),
-      });
-
-      setCustomerName("");
-      setPhoneNumber("");
-      setGuestCount("2");
-      setNote("");
-      setSelectedTableId(null);
-      await loadTables();
+      // Create the QPay invoice and open the payment modal.
+      const { payment: created } = await api.createReservationPayment(reservation.id);
+      setPaymentTableNumber(selectedTable.tableNumber);
+      setPayment(created);
     } catch (error) {
       toast({
         title: copy.errorTitle,
@@ -250,6 +301,28 @@ const ReservationSection = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSimulate = async () => {
+    if (!payment) return;
+    setIsSimulating(true);
+    try {
+      const { payment: latest } = await api.simulateReservationPayment(payment.reservationId);
+      setPayment(latest);
+    } catch (error) {
+      toast({
+        title: copy.errorTitle,
+        description: error instanceof Error ? error.message : copy.serviceUnavailable,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
+  const closePayment = () => {
+    setPayment(null);
+    setPaymentTableNumber(null);
   };
 
   return (
@@ -500,7 +573,7 @@ const ReservationSection = () => {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-neutral-400">
                       <CreditCard className="h-4 w-4" />
-                      <span>No credit card required to reserve</span>
+                      <span>{copy.depositNote}</span>
                     </div>
                   </div>
 
@@ -515,7 +588,7 @@ const ReservationSection = () => {
                         {copy.submitting}
                       </div>
                     ) : (
-                      copy.confirm
+                      `${copy.confirm} · ${formatMnt(50000)}`
                     )}
                   </button>
                 </div>
@@ -540,6 +613,113 @@ const ReservationSection = () => {
           </motion.div>
         </div>
       </div>
+
+      {payment && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={payment.status === "PAID" ? closePayment : undefined}
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl border border-amber-500/30 bg-neutral-950 p-6 sm:p-8"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              onClick={closePayment}
+              className="absolute right-4 top-4 text-neutral-500 transition hover:text-white"
+              aria-label={copy.closeLabel}
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {payment.status === "PAID" ? (
+              <div className="py-6 text-center">
+                <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-400" />
+                <h3 className="mt-4 text-2xl font-light text-white">{copy.paidTitle}</h3>
+                {paymentTableNumber && (
+                  <p className="mt-2 text-neutral-400">{copy.paidBody(paymentTableNumber)}</p>
+                )}
+                <button
+                  onClick={closePayment}
+                  className="mt-6 w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white"
+                >
+                  {copy.closeLabel}
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-1 flex items-center gap-2">
+                  <QrCode className="h-5 w-5 text-amber-400" />
+                  <h3 className="text-xl font-light text-white">{copy.payTitle}</h3>
+                </div>
+                <p className="mb-5 text-sm text-neutral-400">{copy.payBody}</p>
+
+                <div className="mb-4 flex min-h-[220px] items-center justify-center rounded-xl bg-white p-4">
+                  {payment.qrImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`data:image/png;base64,${payment.qrImage}`}
+                      alt="QPay QR"
+                      className="h-52 w-52 object-contain"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-3 text-center">
+                      <QrCode className="h-24 w-24 text-neutral-800" />
+                      <span className="max-w-[12rem] break-all text-xs text-neutral-500">
+                        {payment.qrText}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+                  <span className="text-sm text-neutral-400">{copy.amountLabel}</span>
+                  <span className="text-lg font-semibold text-amber-400">{formatMnt(payment.amount)}</span>
+                </div>
+
+                {payment.urls && payment.urls.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {payment.urls.map((bank) => (
+                      <a
+                        key={bank.name}
+                        href={bank.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg border border-neutral-700 px-3 py-1.5 text-xs text-neutral-300 transition hover:border-amber-400"
+                      >
+                        {bank.name}
+                      </a>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mb-4 flex items-center justify-center gap-2 text-sm text-neutral-500">
+                  <LoaderCircle className="h-4 w-4 animate-spin text-amber-400" />
+                  {copy.waitingPay}
+                </div>
+
+                {payment.sandbox && (
+                  <>
+                    <p className="mb-2 text-center text-xs text-amber-400/80">{copy.paySandbox}</p>
+                    <button
+                      onClick={handleSimulate}
+                      disabled={isSimulating}
+                      className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white disabled:opacity-50"
+                    >
+                      {isSimulating ? (
+                        <LoaderCircle className="mx-auto h-5 w-5 animate-spin" />
+                      ) : (
+                        copy.simulatePay
+                      )}
+                    </button>
+                  </>
+                )}
+
+                <p className="mt-3 text-center text-xs text-neutral-600">{copy.payHint}</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes float-slow {

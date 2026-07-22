@@ -1,12 +1,18 @@
 import type { Prisma, ReservationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { config } from "@/lib/config";
 import { logger } from "@/lib/logger";
 import { reservationRepository } from "@server/repositories/reservation.repository";
 import { reservationHistoryRepository } from "@server/repositories/reservation-history.repository";
 import { tableRepository } from "@server/repositories/table.repository";
 import { syncTableStatus } from "@server/services/expiration.service";
 import { notificationService } from "@server/services/notification.service";
+import {
+  TRANSITIONS,
+  buildTimes,
+  toTimeString,
+  validateBusinessHours,
+  validateDateWindow,
+} from "@server/services/reservation.rules";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import type { AuthContext } from "@/lib/middleware";
 import type {
@@ -15,56 +21,7 @@ import type {
   UpdateReservationInput,
 } from "@/lib/schemas";
 
-// Allowed status transitions
-const TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
-  PENDING:     ["CONFIRMED", "CANCELLED"],
-  CONFIRMED:   ["IN_PROGRESS", "CANCELLED"],
-  IN_PROGRESS: ["COMPLETED"],
-  COMPLETED:   [],
-  CANCELLED:   [],
-};
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function buildTimes(date: string, time: string) {
-  const { durationMinutes } = config.reservation;
-  const [hours, minutes] = time.split(":").map(Number);
-  const startTime = new Date(`${date}T00:00:00.000Z`);
-  startTime.setUTCHours(hours, minutes ?? 0, 0, 0);
-  const endTime = new Date(startTime.getTime() + durationMinutes * 60_000);
-  return { startTime, endTime };
-}
-
-function toTimeString(dt: Date) {
-  return `${String(dt.getUTCHours()).padStart(2, "0")}:${String(dt.getUTCMinutes()).padStart(2, "0")}`;
-}
-
-function validateBusinessHours(startTime: Date, endTime: Date) {
-  const { openHour, closeHour } = config.businessHours;
-  const sh = startTime.getUTCHours() + startTime.getUTCMinutes() / 60;
-  const eh = endTime.getUTCHours()   + endTime.getUTCMinutes()   / 60;
-  if (sh < openHour) {
-    throw new ValidationError(`Reservations cannot start before ${openHour}:00`);
-  }
-  if (eh > closeHour) {
-    throw new ValidationError(`Reservation would end after closing time (${closeHour}:00)`);
-  }
-}
-
-function validateDateWindow(date: string, source: string) {
-  if (source !== "WEBSITE") return;
-  const { websiteMinDays, websiteMaxDays } = config.reservation;
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  const target = new Date(`${date}T00:00:00.000Z`);
-  const diffDays = (target.getTime() - today.getTime()) / 86_400_000;
-  if (diffDays < websiteMinDays) {
-    throw new ValidationError(`Website reservations must be at least ${websiteMinDays} day(s) in advance`);
-  }
-  if (diffDays > websiteMaxDays) {
-    throw new ValidationError(`Website reservations cannot be more than ${websiteMaxDays} days in advance`);
-  }
-}
 
 async function validateCapacity(tableId: string, guestCount: number) {
   const table = await tableRepository.findById(tableId);

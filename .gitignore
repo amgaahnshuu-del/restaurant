@@ -13,6 +13,8 @@ node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
+temp_tree.txt
 .env
 .env.*
 !.env.example

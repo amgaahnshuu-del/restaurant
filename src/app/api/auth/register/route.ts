@@ -3,9 +3,13 @@ import { registerSchema } from "@/lib/schemas";
 import { authService } from "@server/services/auth.service";
 import { AUTH_COOKIE_NAME, COOKIE_MAX_AGE } from "@/lib/jwt";
 import { created, handleError } from "@/lib/response";
+import { clientIp, enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Abuse protection: max 5 new accounts per IP per hour.
+    await enforceRateLimit(`register:${clientIp(req)}`, 5, 60 * 60_000);
+
     const input = registerSchema.parse(await req.json());
     const { user, token } = await authService.register(input);
 
